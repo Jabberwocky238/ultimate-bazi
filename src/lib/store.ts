@@ -8,12 +8,16 @@ import {
   type Zhi,
   type Sex,
 } from '@jabberwocky238/bazi-engine'
+import type { SkillCategory } from './skills'
+import { ganWuxing, zhiWuxing } from './wuxing'
 
 export interface Pillar {
   label: string
   gz: string
   gan: string
   zhi: string
+  ganWuxing: string
+  zhiWuxing: string
   wuxing: string
   nayin: string
   hide: string
@@ -28,6 +32,12 @@ export interface BaziResult {
   pillars: Pillar[]
 }
 
+export interface SkillFocus {
+  category: SkillCategory
+  name: string
+  subtitle?: string
+}
+
 interface BaziState {
   year: number
   month: number
@@ -35,7 +45,9 @@ interface BaziState {
   hour: number
   sex: Sex
   result: BaziResult
+  focused: SkillFocus | null
   setDate: (d: { year: number; month: number; day: number; hour: number; sex: Sex }) => void
+  setFocused: (f: SkillFocus | null) => void
   syncToUrl: () => void
 }
 
@@ -89,6 +101,8 @@ function compute(year: number, month: number, day: number, hour: number, sex: Se
       gz: p.gz,
       gan: p.gan,
       zhi: p.zhi,
+      ganWuxing: ganWuxing(p.gan),
+      zhiWuxing: zhiWuxing(p.zhi),
       wuxing: p.wuxing,
       nayin: p.nayin,
       hide: p.hide.join('、'),
@@ -104,9 +118,11 @@ const initial = readQuery()
 export const useBaziStore = create<BaziState>((set, get) => ({
   ...initial,
   result: compute(initial.year, initial.month, initial.day, initial.hour, initial.sex),
+  focused: null,
   setDate: ({ year, month, day, hour, sex }) => {
     set({ year, month, day, hour, sex, result: compute(year, month, day, hour, sex) })
   },
+  setFocused: (f) => set({ focused: f }),
   syncToUrl: () => {
     const { year, month, day, hour, sex } = get()
     const q = new URLSearchParams({

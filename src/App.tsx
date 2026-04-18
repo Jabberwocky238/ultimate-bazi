@@ -1,130 +1,37 @@
-import { useBaziStore } from './store'
-import './App.css'
+import { useBaziStore } from '@/lib/store'
+import { BaziForm } from '@@/BaziForm'
+import { BaziMeta } from '@@/BaziMeta'
+import { BaziChart } from '@@/chart/BaziChart'
+import { SkillIndex } from '@@/SkillIndex'
+import { SkillPanel } from '@@/SkillPanel'
+import { Footer } from '@@/Footer'
 
 function App() {
-  const year = useBaziStore((s) => s.year)
-  const month = useBaziStore((s) => s.month)
-  const day = useBaziStore((s) => s.day)
-  const hour = useBaziStore((s) => s.hour)
-  const sex = useBaziStore((s) => s.sex)
   const result = useBaziStore((s) => s.result)
-  const setDate = useBaziStore((s) => s.setDate)
-  const syncToUrl = useBaziStore((s) => s.syncToUrl)
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const form = new FormData(e.currentTarget)
-    setDate({
-      year: Number(form.get('year')),
-      month: Number(form.get('month')),
-      day: Number(form.get('day')),
-      hour: Number(form.get('hour')),
-      sex: Number(form.get('sex')) === 0 ? 0 : 1,
-    })
-    syncToUrl()
-  }
 
   return (
-    <main className="bazi-app">
-      <h1>八字计算</h1>
+    <main className="mx-auto max-w-7xl px-4 md:px-6 pt-6 md:pt-10 pb-10 md:pb-16">
+      <header className="mb-6">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">八字排盘</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          公历出生时间 → 四柱、十神、神煞 · 点击任意词条查看释义
+        </p>
+      </header>
 
-      <form className="bazi-form" onSubmit={onSubmit}>
-        <label>
-          年 <input name="year" type="number" defaultValue={year} />
-        </label>
-        <label>
-          月 <input name="month" type="number" min={1} max={12} defaultValue={month} />
-        </label>
-        <label>
-          日 <input name="day" type="number" min={1} max={31} defaultValue={day} />
-        </label>
-        <label>
-          时 <input name="hour" type="number" min={0} max={23} defaultValue={hour} />
-        </label>
-        <label>
-          性别
-          <select name="sex" defaultValue={sex}>
-            <option value={1}>男</option>
-            <option value={0}>女</option>
-          </select>
-        </label>
-        <button type="submit">计算</button>
-      </form>
+      <div className="grid gap-6 md:gap-8 md:grid-cols-[minmax(0,1fr)_380px] lg:grid-cols-[minmax(0,1fr)_420px]">
+        <section className="min-w-0">
+          <BaziForm />
+          <BaziMeta solar={result.solarStr} lunar={result.lunarStr} />
+          <BaziChart pillars={result.pillars} />
+          <SkillIndex pillars={result.pillars} />
+        </section>
 
-      <section className="bazi-meta">
-        <div>公历：{result.solarStr}</div>
-        <div>农历：{result.lunarStr}</div>
-      </section>
+        <section className="min-w-0">
+          <SkillPanel />
+        </section>
+      </div>
 
-      <table className="bazi-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>年柱</th>
-            <th>月柱</th>
-            <th>日柱</th>
-            <th>时柱</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th>干支</th>
-            {result.pillars.map((p) => (
-              <td key={p.label} className="gz">{p.gz}</td>
-            ))}
-          </tr>
-          <tr>
-            <th>天干</th>
-            {result.pillars.map((p) => (
-              <td key={p.label}>{p.gan}</td>
-            ))}
-          </tr>
-          <tr>
-            <th>地支</th>
-            {result.pillars.map((p) => (
-              <td key={p.label}>{p.zhi}</td>
-            ))}
-          </tr>
-          <tr>
-            <th>五行</th>
-            {result.pillars.map((p) => (
-              <td key={p.label}>{p.wuxing}</td>
-            ))}
-          </tr>
-          <tr>
-            <th>纳音</th>
-            {result.pillars.map((p) => (
-              <td key={p.label}>{p.nayin}</td>
-            ))}
-          </tr>
-          <tr>
-            <th>藏干</th>
-            {result.pillars.map((p) => (
-              <td key={p.label}>{p.hide}</td>
-            ))}
-          </tr>
-          <tr>
-            <th>十神</th>
-            {result.pillars.map((p) => (
-              <td key={p.label}>{p.shishen}</td>
-            ))}
-          </tr>
-          <tr>
-            <th>藏干十神</th>
-            {result.pillars.map((p) => (
-              <td key={p.label}>{p.hideShishen.join('、')}</td>
-            ))}
-          </tr>
-          <tr>
-            <th>神煞</th>
-            {result.pillars.map((p) => (
-              <td key={p.label} className="shensha">
-                {p.shensha.length ? p.shensha.map((s) => <div key={s}>{s}</div>) : '—'}
-              </td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
+      <Footer />
     </main>
   )
 }

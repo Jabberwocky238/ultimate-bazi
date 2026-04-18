@@ -3,7 +3,8 @@
     "allow": [
       "Bash(bun add *)",
       "Bash(bun x *)",
-      "Bash(bun remove *)"
+      "Bash(bun remove *)",
+      "Bash(git submodule *)"
     ],
     "deny": [
       "Bash(npm install *)",
