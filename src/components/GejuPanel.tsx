@@ -1,93 +1,31 @@
 import { useState } from 'react'
 import type { Pillar } from '@/lib/store'
-import { detectGeju } from '@/lib/geju'
+import { detectGeju, type GejuQuality, type GejuCategory } from '@/lib/geju'
+import { skillNames } from '@/lib/skills'
 import { SkillLink } from '@@/SkillLink'
 
-type GejuCategory = 'shishen' | 'wuxing' | 'zhuanwang' | 'special'
-
-const GEJU_CATEGORY: Record<string, GejuCategory> = {
-  // 十神格
-  建禄格: 'shishen',
-  魁罡格: 'shishen',
-  官杀混杂: 'shishen',
-  官印相生: 'shishen',
-  杀印相生: 'shishen',
-  食神制杀: 'shishen',
-  枭神夺食: 'shishen',
-  伤官见官: 'shishen',
-  伤官合杀: 'shishen',
-  伤官生财: 'shishen',
-  伤官佩印: 'shishen',
-  食伤混杂: 'shishen',
-  食伤泄秀: 'shishen',
-  比劫重重: 'shishen',
-  以财破印: 'shishen',
-  财多身弱: 'shishen',
-  // 五行象法
-  水火既济: 'wuxing',
-  水火相战: 'wuxing',
-  木火通明: 'wuxing',
-  木多火塞: 'wuxing',
-  土金毓秀: 'wuxing',
-  土重金埋: 'wuxing',
-  金火铸印: 'wuxing',
-  火旺金衰: 'wuxing',
-  水木清华: 'wuxing',
-  金寒水冷: 'wuxing',
-  木疏厚土: 'wuxing',
-  斧斤伐木: 'wuxing',
-  // 专旺 / 从格
-  曲直格: 'zhuanwang',
-  炎上格: 'zhuanwang',
-  稼穑格: 'zhuanwang',
-  从革格: 'zhuanwang',
-  润下格: 'zhuanwang',
-  专旺格: 'zhuanwang',
-  从财格: 'zhuanwang',
-  从杀格: 'zhuanwang',
-  弃命从势: 'zhuanwang',
-  // 特殊格局
-  壬骑龙背: 'special',
-  羊刃驾杀: 'special',
-  羊刃劫财: 'special',
-  禄马同乡: 'special',
-  财官印全: 'special',
-  寒木向阳: 'special',
-  日照江河: 'special',
+/** 边框 + 底色 + 发光色：表示吉凶。`--glow-color` 覆盖 SkillLink 的 hover 圆边光 */
+const QUALITY_BORDER: Record<GejuQuality, string> = {
+  good: 'border-emerald-500/60 bg-emerald-500/5 [--glow-color:#10b981]',
+  bad: 'border-rose-500/60 bg-rose-500/5 [--glow-color:#f43f5e]',
+  neutral: 'border-slate-400/50 bg-slate-400/5 [--glow-color:#94a3b8]',
 }
 
-const CHIP_BY_CAT: Record<GejuCategory, string> = {
-  // 十神 = 琥珀金
-  shishen:
-    'border-amber-600/40 bg-amber-600/10 text-amber-700 dark:border-amber-400/40 dark:text-amber-400',
-  // 五行 = 银白
-  wuxing:
-    'border-slate-400/50 bg-slate-300/20 text-slate-700 dark:border-slate-300/40 dark:bg-slate-400/15 dark:text-slate-200',
-  // 专旺 = 绿
-  zhuanwang:
-    'border-emerald-600/40 bg-emerald-600/10 text-emerald-700 dark:border-emerald-400/40 dark:text-emerald-400',
-  // 特殊 = 紫
-  special:
-    'border-purple-600/40 bg-purple-600/10 text-purple-700 dark:border-purple-400/40 dark:text-purple-400',
+/** 字体颜色：表示所属类别 */
+const CATEGORY_TEXT: Record<GejuCategory, string> = {
+  从格: 'text-indigo-700 dark:text-indigo-400',
+  十神格: 'text-amber-700 dark:text-amber-400',
+  五行格: 'text-sky-700 dark:text-sky-400',
+  专旺格: 'text-emerald-700 dark:text-emerald-400',
+  特殊格: 'text-purple-700 dark:text-purple-400',
 }
 
-const CHIP_MUTED_BY_CAT: Record<GejuCategory, string> = {
-  shishen: 'border-amber-700/25 text-amber-700/70 dark:text-amber-400/70',
-  wuxing: 'border-slate-400/30 text-slate-600/70 dark:text-slate-400/70',
-  zhuanwang: 'border-emerald-600/25 text-emerald-700/70 dark:text-emerald-400/70',
-  special: 'border-purple-600/25 text-purple-700/70 dark:text-purple-400/70',
-}
-
-function categoryOf(name: string): GejuCategory {
-  return GEJU_CATEGORY[name] ?? 'shishen'
-}
-
-const ALL_GEJU = Object.keys(GEJU_CATEGORY)
+const CATEGORY_ORDER: GejuCategory[] = ['十神格', '五行格', '专旺格', '从格', '特殊格']
 
 export function GejuPanel({ pillars }: { pillars: Pillar[] }) {
   const hits = detectGeju(pillars)
   const hitSet = new Set(hits.map((h) => h.name))
-  const others = ALL_GEJU.filter((n) => !hitSet.has(n))
+  const others = skillNames('geju').filter((n) => !hitSet.has(n))
   const [showAll, setShowAll] = useState(false)
 
   return (
@@ -96,27 +34,33 @@ export function GejuPanel({ pillars }: { pillars: Pillar[] }) {
         <h2 className="text-xs font-medium tracking-[0.25em] uppercase text-slate-500 dark:text-slate-400">
           格局分析
         </h2>
-        <div className="text-[11px] text-slate-400 dark:text-slate-500 flex gap-3 flex-wrap">
-          <span className="text-amber-700 dark:text-amber-400">● 十神</span>
-          <span className="text-slate-500 dark:text-slate-300">● 五行</span>
-          <span className="text-emerald-700 dark:text-emerald-400">● 专旺</span>
-          <span className="text-purple-700 dark:text-purple-400">● 特殊</span>
+
+        {/* 图例 */}
+        <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-emerald-500/70" />吉
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-rose-500/70 ml-1" />凶
+            <span className="inline-block w-3 h-3 rounded-full border-2 border-slate-400/70 ml-1" />中性
+          </div>
+          <div className="flex items-center gap-2">
+            {CATEGORY_ORDER.map((c) => (
+              <span key={c} className={CATEGORY_TEXT[c]}>{c}</span>
+            ))}
+          </div>
         </div>
       </div>
 
       {hits.length === 0 ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          未识别到明显格局
-        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">未识别到明显格局</p>
       ) : (
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-wrap gap-2">
           {hits.map((h) => (
             <SkillLink
               key={h.name}
               category="geju"
               name={h.name}
               subtitle={h.note}
-              className={`text-sm px-3 py-1 rounded-full border ${CHIP_BY_CAT[categoryOf(h.name)]}`}
+              className={`text-sm px-3 py-1 rounded-full border-2 ${QUALITY_BORDER[h.quality]} ${CATEGORY_TEXT[h.category]}`}
             >
               {h.name}
             </SkillLink>
@@ -139,7 +83,7 @@ export function GejuPanel({ pillars }: { pillars: Pillar[] }) {
                 key={n}
                 category="geju"
                 name={n}
-                className={`text-xs px-2.5 py-0.5 rounded-full border ${CHIP_MUTED_BY_CAT[categoryOf(n)]}`}
+                className="text-xs px-2.5 py-0.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400"
               >
                 {n}
               </SkillLink>

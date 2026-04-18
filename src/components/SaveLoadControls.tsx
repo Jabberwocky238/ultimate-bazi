@@ -42,6 +42,9 @@ const PRESETS: SavedEntry[] = [
   { name: '武则天', year: 625, month: 3, day: 7, hour: 0, sex: 0, savedAt: 0 },
   { name: 'XXX', year: 1953, month: 6, day: 15, hour: 12, sex: 1, savedAt: 0 },
   { name: '张雪峰', year: 1984, month: 5, day: 18, hour: HOUR_UNKNOWN, sex: 1, savedAt: 0 },
+  { name: '许家印', year: 1958, month: 10, day: 9, hour: 1, sex: 1, savedAt: 0 },
+  { name: '雷军', year: 1969, month: 12, day: 16, hour: 8, sex: 1, savedAt: 0 },
+  { name: '马化腾', year: 1971, month: 10, day: 29, hour: 8, sex: 1, savedAt: 0 },
 ]
 
 function seedIfAbsent() {

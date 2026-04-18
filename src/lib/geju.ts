@@ -9,7 +9,7 @@
  *
  * 所有阈值都是**位置数**（0-4 个柱），不做权重累加或回归比值。
  *
- * 每个 isXxx(ctx) 返回 GejuHit | null。判定标准来自
+ * 每个 isXxx(ctx) 返回 GejuDraft | null。判定标准来自
  * public/bazi-skills/core/格局/<name>.md 的「成立条件」章节。
  */
 
@@ -25,9 +25,82 @@ import {
 import type { Pillar } from './store'
 import { ganWuxing } from './wuxing'
 
+export type GejuQuality = 'good' | 'bad' | 'neutral'
+export type GejuCategory = '从格' | '十神格' | '五行格' | '专旺格' | '特殊格'
+
 export interface GejuHit {
   name: string
   note: string
+  quality: GejuQuality
+  category: GejuCategory
+}
+
+type GejuDraft = Pick<GejuHit, 'name' | 'note'>
+
+const META: Record<string, { quality: GejuQuality; category: GejuCategory }> = {
+  // 特殊格
+  魁罡格: { quality: 'good', category: '特殊格' },
+  壬骑龙背: { quality: 'good', category: '特殊格' },
+  禄马同乡: { quality: 'good', category: '特殊格' },
+  日照江河: { quality: 'good', category: '特殊格' },
+  寒木向阳: { quality: 'good', category: '特殊格' },
+
+  // 十神格 (吉)
+  建禄格: { quality: 'good', category: '十神格' },
+  官印相生: { quality: 'good', category: '十神格' },
+  杀印相生: { quality: 'good', category: '十神格' },
+  食神制杀: { quality: 'good', category: '十神格' },
+  伤官合杀: { quality: 'good', category: '十神格' },
+  伤官生财: { quality: 'good', category: '十神格' },
+  伤官佩印: { quality: 'good', category: '十神格' },
+  食伤泄秀: { quality: 'good', category: '十神格' },
+  财官印全: { quality: 'good', category: '十神格' },
+  羊刃驾杀: { quality: 'good', category: '十神格' },
+
+  // 十神格 (凶/中性)
+  官杀混杂: { quality: 'bad', category: '十神格' },
+  食伤混杂: { quality: 'bad', category: '十神格' },
+  伤官见官: { quality: 'bad', category: '十神格' },
+  枭神夺食: { quality: 'bad', category: '十神格' },
+  以财破印: { quality: 'bad', category: '十神格' },
+  财多身弱: { quality: 'bad', category: '十神格' },
+  比劫重重: { quality: 'bad', category: '十神格' },
+  羊刃劫财: { quality: 'bad', category: '十神格' },
+
+  // 专旺格
+  曲直格: { quality: 'good', category: '专旺格' },
+  炎上格: { quality: 'good', category: '专旺格' },
+  稼穑格: { quality: 'good', category: '专旺格' },
+  从革格: { quality: 'good', category: '专旺格' },
+  润下格: { quality: 'good', category: '专旺格' },
+
+  // 从格
+  从财格: { quality: 'good', category: '从格' },
+  从杀格: { quality: 'good', category: '从格' },
+  弃命从势: { quality: 'good', category: '从格' },
+
+  // 五行格 (吉)
+  木火通明: { quality: 'good', category: '五行格' },
+  水木清华: { quality: 'good', category: '五行格' },
+  水火既济: { quality: 'good', category: '五行格' },
+  土金毓秀: { quality: 'good', category: '五行格' },
+  金火铸印: { quality: 'good', category: '五行格' },
+  金白水清: { quality: 'good', category: '五行格' },
+  火土夹带: { quality: 'good', category: '五行格' },
+  木疏厚土: { quality: 'good', category: '五行格' },
+  斧斤伐木: { quality: 'good', category: '五行格' },
+
+  // 五行格 (凶)
+  木火相煎: { quality: 'bad', category: '五行格' },
+  木多火塞: { quality: 'bad', category: '五行格' },
+  水火相战: { quality: 'bad', category: '五行格' },
+  水多木漂: { quality: 'bad', category: '五行格' },
+  水冷木寒: { quality: 'bad', category: '五行格' },
+  金寒水冷: { quality: 'bad', category: '五行格' },
+  火旺金衰: { quality: 'bad', category: '五行格' },
+  火多金熔: { quality: 'bad', category: '五行格' },
+  火炎土燥: { quality: 'bad', category: '五行格' },
+  土重金埋: { quality: 'bad', category: '五行格' },
 }
 
 type ShishenCat = '比劫' | '印' | '食伤' | '财' | '官杀'
@@ -224,19 +297,19 @@ function buildCtx(pillars: Pillar[]): Ctx {
 // ——————————————————————— 正格 ———————————————————————
 
 /** 建禄格：月支为日主之禄。 */
-export function isJianLuGe(ctx: Ctx): GejuHit | null {
+export function isJianLuGe(ctx: Ctx): GejuDraft | null {
   if (ctx.monthZhi !== LU[ctx.dayGan]) return null
   return { name: '建禄格', note: `月令 ${ctx.monthZhi} 为日主 ${ctx.dayGan} 之禄` }
 }
 
 /** 魁罡格：日柱为庚辰/庚戌/壬辰/戊戌。 */
-export function isKuiGangGe(ctx: Ctx): GejuHit | null {
+export function isKuiGangGe(ctx: Ctx): GejuDraft | null {
   if (!KUIGANG_DAY.has(ctx.dayGz)) return null
   return { name: '魁罡格', note: `日柱 ${ctx.dayGz} 为魁罡` }
 }
 
 /** 壬骑龙背：日柱壬辰。 */
-export function isRenQiLongBei(ctx: Ctx): GejuHit | null {
+export function isRenQiLongBei(ctx: Ctx): GejuDraft | null {
   if (ctx.dayGz !== '壬辰') return null
   return { name: '壬骑龙背', note: '日柱壬辰' }
 }
@@ -244,7 +317,7 @@ export function isRenQiLongBei(ctx: Ctx): GejuHit | null {
 // ——————————————————————— 官杀 ———————————————————————
 
 /** 官杀混杂：正官与七杀同时存在 (天干或地支)。 */
-export function isGuanShaHunZa(ctx: Ctx): GejuHit | null {
+export function isGuanShaHunZa(ctx: Ctx): GejuDraft | null {
   if (!ctx.has('正官') || !ctx.has('七杀')) return null
   const form = ctx.tou('正官') && ctx.tou('七杀') ? '天干双透'
     : ctx.tou('正官') || ctx.tou('七杀') ? '一透一藏' : '均藏'
@@ -252,7 +325,7 @@ export function isGuanShaHunZa(ctx: Ctx): GejuHit | null {
 }
 
 /** 官印相生：正官存在 + 无七杀(否则为混杂) + 印透干 + 无伤官透 + 身不弱。 */
-export function isGuanYinXiangSheng(ctx: Ctx): GejuHit | null {
+export function isGuanYinXiangSheng(ctx: Ctx): GejuDraft | null {
   if (!ctx.has('正官')) return null
   if (ctx.has('七杀')) return null
   if (!ctx.touCat('印')) return null
@@ -262,7 +335,7 @@ export function isGuanYinXiangSheng(ctx: Ctx): GejuHit | null {
 }
 
 /** 杀印相生：七杀存在 + 无正官(否则为混杂) + 印透干 + 身不弱。 */
-export function isShaYinXiangSheng(ctx: Ctx): GejuHit | null {
+export function isShaYinXiangSheng(ctx: Ctx): GejuDraft | null {
   if (!ctx.has('七杀')) return null
   if (ctx.has('正官')) return null
   if (!ctx.touCat('印')) return null
@@ -273,7 +346,7 @@ export function isShaYinXiangSheng(ctx: Ctx): GejuHit | null {
 // ——————————————————————— 食伤 ———————————————————————
 
 /** 食神制杀：食神透 + 七杀存在 + **无偏印透干**(枭印夺食) + 身不弱。 */
-export function isShiShenZhiSha(ctx: Ctx): GejuHit | null {
+export function isShiShenZhiSha(ctx: Ctx): GejuDraft | null {
   if (!ctx.tou('食神')) return null
   if (!ctx.has('七杀')) return null
   if (ctx.tou('偏印')) return null
@@ -282,7 +355,7 @@ export function isShiShenZhiSha(ctx: Ctx): GejuHit | null {
 }
 
 /** 枭神夺食：偏印透 + 食神存在 + 无财救(财不透)。 */
-export function isXiaoShenDuoShi(ctx: Ctx): GejuHit | null {
+export function isXiaoShenDuoShi(ctx: Ctx): GejuDraft | null {
   if (!ctx.tou('偏印')) return null
   if (!ctx.has('食神')) return null
   if (ctx.touCat('财')) return null
@@ -290,7 +363,7 @@ export function isXiaoShenDuoShi(ctx: Ctx): GejuHit | null {
 }
 
 /** 伤官见官：伤官与正官都透干 + 相邻 + 无印制(印不透)。 */
-export function isShangGuanJianGuan(ctx: Ctx): GejuHit | null {
+export function isShangGuanJianGuan(ctx: Ctx): GejuDraft | null {
   if (!ctx.tou('伤官') || !ctx.tou('正官')) return null
   if (!ctx.adjacentTou('伤官', '正官')) return null
   if (ctx.touCat('印')) return null
@@ -299,13 +372,13 @@ export function isShangGuanJianGuan(ctx: Ctx): GejuHit | null {
 }
 
 /** 伤官合杀：伤官与七杀并存。 */
-export function isShangGuanHeSha(ctx: Ctx): GejuHit | null {
+export function isShangGuanHeSha(ctx: Ctx): GejuDraft | null {
   if (!ctx.has('伤官') || !ctx.has('七杀')) return null
   return { name: '伤官合杀', note: '伤官 + 七杀共存' }
 }
 
 /** 伤官生财：伤官透 + 财有力 + 身不弱 + 印不透(以免克伤)。 */
-export function isShangGuanShengCai(ctx: Ctx): GejuHit | null {
+export function isShangGuanShengCai(ctx: Ctx): GejuDraft | null {
   if (!ctx.tou('伤官')) return null
   if (!ctx.strongCat('财')) return null
   if (ctx.touCat('印')) return null
@@ -314,7 +387,7 @@ export function isShangGuanShengCai(ctx: Ctx): GejuHit | null {
 }
 
 /** 伤官佩印：伤官透 + 印透 + 身不弱 + 财不透(以免破印)。 */
-export function isShangGuanPeiYin(ctx: Ctx): GejuHit | null {
+export function isShangGuanPeiYin(ctx: Ctx): GejuDraft | null {
   if (!ctx.tou('伤官')) return null
   if (!ctx.touCat('印')) return null
   if (ctx.touCat('财')) return null
@@ -323,13 +396,13 @@ export function isShangGuanPeiYin(ctx: Ctx): GejuHit | null {
 }
 
 /** 食伤混杂：食神与伤官同时透干。 */
-export function isShiShangHunZa(ctx: Ctx): GejuHit | null {
+export function isShiShangHunZa(ctx: Ctx): GejuDraft | null {
   if (!(ctx.tou('食神') && ctx.tou('伤官'))) return null
   return { name: '食伤混杂', note: '食神伤官双透' }
 }
 
 /** 食伤泄秀：身旺 + 食伤透干 + 无偏印透(避免夺食)。 */
-export function isShiShangXieXiu(ctx: Ctx): GejuHit | null {
+export function isShiShangXieXiu(ctx: Ctx): GejuDraft | null {
   if (!ctx.shenWang) return null
   if (!(ctx.tou('食神') || ctx.tou('伤官'))) return null
   if (ctx.tou('偏印')) return null
@@ -339,7 +412,7 @@ export function isShiShangXieXiu(ctx: Ctx): GejuHit | null {
 // ——————————————————————— 羊刃 ———————————————————————
 
 /** 羊刃驾杀：月支为日主羊刃 + 七杀存在。 */
-export function isYangRenJiaSha(ctx: Ctx): GejuHit | null {
+export function isYangRenJiaSha(ctx: Ctx): GejuDraft | null {
   const yr = YANG_REN[ctx.dayGan]
   if (!yr || ctx.monthZhi !== yr) return null
   if (!ctx.has('七杀')) return null
@@ -347,7 +420,7 @@ export function isYangRenJiaSha(ctx: Ctx): GejuHit | null {
 }
 
 /** 羊刃劫财：月支为日主羊刃 + 劫财透干。 */
-export function isYangRenJieCai(ctx: Ctx): GejuHit | null {
+export function isYangRenJieCai(ctx: Ctx): GejuDraft | null {
   const yr = YANG_REN[ctx.dayGan]
   if (!yr || ctx.monthZhi !== yr) return null
   if (!ctx.tou('劫财')) return null
@@ -357,7 +430,7 @@ export function isYangRenJieCai(ctx: Ctx): GejuHit | null {
 // ——————————————————————— 总量 ———————————————————————
 
 /** 财官印全：财、官(杀)、印 三者皆透干。 */
-export function isCaiGuanYinQuan(ctx: Ctx): GejuHit | null {
+export function isCaiGuanYinQuan(ctx: Ctx): GejuDraft | null {
   if (!ctx.touCat('财')) return null
   if (!ctx.touCat('官杀')) return null
   if (!ctx.touCat('印')) return null
@@ -365,7 +438,7 @@ export function isCaiGuanYinQuan(ctx: Ctx): GejuHit | null {
 }
 
 /** 比劫重重：比劫透干 ≥ 2 或 地支主气比劫 ≥ 3。 */
-export function isBiJieChongChong(ctx: Ctx): GejuHit | null {
+export function isBiJieChongChong(ctx: Ctx): GejuDraft | null {
   const touN = [
     ctx.tou('比肩'), ctx.tou('劫财'),
   ].filter(Boolean).length +
@@ -376,7 +449,7 @@ export function isBiJieChongChong(ctx: Ctx): GejuHit | null {
 }
 
 /** 禄马同乡：某柱地支既为日主禄又为驿马。 */
-export function isLuMaTongXiang(ctx: Ctx): GejuHit | null {
+export function isLuMaTongXiang(ctx: Ctx): GejuDraft | null {
   const lu = LU[ctx.dayGan]
   const ymY = yimaFrom(ctx.yearZhi)
   const ymD = yimaFrom(ctx.dayZhi)
@@ -390,7 +463,7 @@ export function isLuMaTongXiang(ctx: Ctx): GejuHit | null {
 }
 
 /** 以财破印：身弱 + 印透干 + 财透干 (财克印)。 */
-export function isYiCaiPoYin(ctx: Ctx): GejuHit | null {
+export function isYiCaiPoYin(ctx: Ctx): GejuDraft | null {
   if (!ctx.shenRuo) return null
   if (!ctx.touCat('印')) return null
   if (!ctx.touCat('财')) return null
@@ -398,7 +471,7 @@ export function isYiCaiPoYin(ctx: Ctx): GejuHit | null {
 }
 
 /** 财多身弱：身弱 + 财透干 ≥ 2 或 财在地支主气 ≥ 2。 */
-export function isCaiDuoShenRuo(ctx: Ctx): GejuHit | null {
+export function isCaiDuoShenRuo(ctx: Ctx): GejuDraft | null {
   if (!ctx.shenRuo) return null
   const caiTou = ['正财', '偏财'].map((s) => ctx.tou(s) ? 1 : 0 as number)
   const touN = (caiTou[0] + caiTou[1])
@@ -414,7 +487,7 @@ export function isCaiDuoShenRuo(ctx: Ctx): GejuHit | null {
  */
 
 /** 水火对：既济 (有通关) / 相战 (无通关)。*/
-export function judgeShuiHuo(ctx: Ctx): GejuHit | null {
+export function judgeShuiHuo(ctx: Ctx): GejuDraft | null {
   if (!ctx.touWx('水') || !ctx.touWx('火')) return null
   const tongGuan = ctx.touWx('木') || ctx.touWx('土')
   if (tongGuan) return { name: '水火既济', note: '水火并存，有木/土通关' }
@@ -422,11 +495,18 @@ export function judgeShuiHuo(ctx: Ctx): GejuHit | null {
 }
 
 /** 木火对：
- *  - 木日主 + 火透 + 木有根 + 无金 → 木火通明
+ *  - 木日主 + 火过旺 + 木无重根 + 无水救 → 木火相煎
+ *  - 木日主 + 火透 + 木有根 + 无金克 → 木火通明
  *  - 火日主 + 地支木 ≥ 3 + 火无重根 → 木多火塞
  */
-export function judgeMuHuo(ctx: Ctx): GejuHit | null {
+export function judgeMuHuo(ctx: Ctx): GejuDraft | null {
   if (ctx.dayWx === '木') {
+    const huoMany = ctx.ganWxCount('火') >= 2 || ctx.zhiMainWxCount('火') >= 2
+    const muRootCount = ctx.zhiMainWxCount('木')
+    const hasShui = ctx.touWx('水') || ctx.rootWx('水')
+    if (huoMany && muRootCount <= 1 && !hasShui) {
+      return { name: '木火相煎', note: '火过旺而木根虚，无水润' }
+    }
     if (ctx.touWx('火') && ctx.rootWx('木') && !ctx.touWx('金')) {
       return { name: '木火通明', note: '木生火且火透，无金克木' }
     }
@@ -445,7 +525,7 @@ export function judgeMuHuo(ctx: Ctx): GejuHit | null {
  *  - 土日主 + 金透 + 土有根 + 无木透 → 土金毓秀
  *  - 金日主 + 地支土 ≥ 3 + 土透 ≥ 2 → 土重金埋
  */
-export function judgeTuJin(ctx: Ctx): GejuHit | null {
+export function judgeTuJin(ctx: Ctx): GejuDraft | null {
   if (ctx.dayWx === '土') {
     if (ctx.touWx('金') && ctx.rootWx('土') && !ctx.touWx('木')) {
       return { name: '土金毓秀', note: '土生金且金透，无木克土' }
@@ -460,42 +540,100 @@ export function judgeTuJin(ctx: Ctx): GejuHit | null {
 }
 
 /** 火金对 (日主金)：
- *  - 金有根 + 火透 → 金火铸印
+ *  - 火过盛 + 金无根 + 无水救 → 火多金熔
  *  - 火透 ≥ 2 + 金无根 → 火旺金衰
+ *  - 金有根 + 火透 → 金火铸印
  */
-export function judgeHuoJin(ctx: Ctx): GejuHit | null {
+export function judgeHuoJin(ctx: Ctx): GejuDraft | null {
   if (ctx.dayWx !== '金') return null
+  const huoHeavy = ctx.ganWxCount('火') >= 2 && ctx.zhiMainWxCount('火') >= 1
   const huoDuo = ctx.ganWxCount('火') >= 2
   const jinRoot = ctx.rootWx('金')
   const huoTou = ctx.touWx('火')
+  const hasShui = ctx.touWx('水') || ctx.rootWx('水')
+  if (huoHeavy && !jinRoot && !hasShui) {
+    return { name: '火多金熔', note: '火极盛金无根且无水救' }
+  }
   if (huoDuo && !jinRoot) return { name: '火旺金衰', note: '火多透而金无根' }
   if (jinRoot && huoTou) return { name: '金火铸印', note: '金有根得火锻' }
   return null
 }
 
-/** 水木对 (日主水或木)：
- *  - 水透 + 木透 + 无金透 → 水木清华
- *  (水多木漂 / 水少木枯 两种破象暂无独立 md, 不输出名号)
+/** 火土对：
+ *  - 火土皆透 + 有根 + 有水调湿 → 火土夹带 (吉)
+ *  - 火过旺 + 土随火烤 + 无水 → 火炎土燥 (凶)
  */
-export function judgeShuiMu(ctx: Ctx): GejuHit | null {
+export function judgeHuoTu(ctx: Ctx): GejuDraft | null {
+  const huoTou = ctx.touWx('火')
+  const tuTou = ctx.touWx('土')
+  if (!huoTou || !tuTou) return null
+  const huoHeavy = ctx.ganWxCount('火') >= 2 || ctx.zhiMainWxCount('火') >= 2
+  const hasShui = ctx.touWx('水') || ctx.rootWx('水')
+  if (huoHeavy && !hasShui) {
+    return { name: '火炎土燥', note: '火旺透土而无水润' }
+  }
+  if (ctx.rootWx('火') && ctx.rootWx('土') && hasShui) {
+    return { name: '火土夹带', note: '火土相连有根且水润' }
+  }
+  return null
+}
+
+/** 水木对 (日主水或木)：
+ *  - 木日主 + 水极盛 + 木无根 → 水多木漂 (凶)
+ *  - 木日主 + 冬月 + 水多 + 无火 → 水冷木寒 (凶)
+ *  - 水透 + 木透 + 无金透 + 无厚土克水 → 水木清华 (吉)
+ */
+export function judgeShuiMu(ctx: Ctx): GejuDraft | null {
   if (ctx.dayWx !== '水' && ctx.dayWx !== '木') return null
+
+  if (ctx.dayWx === '木') {
+    const shuiMany = ctx.ganWxCount('水') >= 2 || ctx.zhiMainWxCount('水') >= 3
+    const muRootless = ctx.zhiMainWxCount('木') === 0
+    if (shuiMany && muRootless) {
+      return { name: '水多木漂', note: '水盛而木无根' }
+    }
+    if (
+      ctx.season === '冬' &&
+      (ctx.ganWxCount('水') >= 2 || ctx.zhiMainWxCount('水') >= 2) &&
+      !ctx.touWx('火')
+    ) {
+      return { name: '水冷木寒', note: '冬月水旺而无火' }
+    }
+  }
+
   if (!ctx.touWx('水') || !ctx.touWx('木')) return null
   if (ctx.touWx('金')) return null
   if (ctx.zhiMainWxCount('土') >= 2) return null
   return { name: '水木清华', note: '水生木且木透，无金克' }
 }
 
-/** 金水对：冬月 + 金水齐透 + 无火透 → 金寒水冷。*/
-export function judgeJinShui(ctx: Ctx): GejuHit | null {
-  if (ctx.season !== '冬') return null
-  if (ctx.dayWx !== '金' && ctx.dayWx !== '水') return null
-  if (!ctx.touWx('金') || !ctx.touWx('水')) return null
-  if (ctx.touWx('火')) return null
-  return { name: '金寒水冷', note: '冬月金水并透，火缺调候' }
+/** 金水对：
+ *  - 冬月 + 金水齐透 + 无火透 → 金寒水冷 (凶)
+ *  - 金日主 + 水透 + 金有根 + 无厚土掩 + 非冬 → 金白水清 (吉)
+ */
+export function judgeJinShui(ctx: Ctx): GejuDraft | null {
+  if (
+    ctx.season === '冬' &&
+    (ctx.dayWx === '金' || ctx.dayWx === '水') &&
+    ctx.touWx('金') && ctx.touWx('水') &&
+    !ctx.touWx('火')
+  ) {
+    return { name: '金寒水冷', note: '冬月金水并透，火缺调候' }
+  }
+  if (
+    ctx.dayWx === '金' &&
+    ctx.touWx('水') &&
+    ctx.rootWx('金') &&
+    ctx.zhiMainWxCount('土') < 2 &&
+    ctx.season !== '冬'
+  ) {
+    return { name: '金白水清', note: '金有根透水，无土浊水' }
+  }
+  return null
 }
 
 /** 木土对 (日主土)：地支土 ≥ 2 + 天干木恰 1 位 → 木疏厚土。*/
-export function judgeMuTu(ctx: Ctx): GejuHit | null {
+export function judgeMuTu(ctx: Ctx): GejuDraft | null {
   if (ctx.dayWx !== '土') return null
   if (ctx.zhiMainWxCount('土') < 2) return null
   if (ctx.ganWxCount('木') !== 1) return null
@@ -503,14 +641,14 @@ export function judgeMuTu(ctx: Ctx): GejuHit | null {
 }
 
 /** 金木对 (日主木)：金透 ≥ 2 或 地支金 ≥ 2 → 斧斤伐木。*/
-export function judgeJinMu(ctx: Ctx): GejuHit | null {
+export function judgeJinMu(ctx: Ctx): GejuDraft | null {
   if (ctx.dayWx !== '木') return null
   if (ctx.ganWxCount('金') < 2 && ctx.zhiMainWxCount('金') < 2) return null
   return { name: '斧斤伐木', note: '金旺克木' }
 }
 
 /** 调候：冬月木日主 + 火透 → 寒木向阳。*/
-export function judgeHanMu(ctx: Ctx): GejuHit | null {
+export function judgeHanMu(ctx: Ctx): GejuDraft | null {
   if (ctx.dayWx !== '木') return null
   if (ctx.season !== '冬') return null
   if (!ctx.touWx('火')) return null
@@ -518,7 +656,7 @@ export function judgeHanMu(ctx: Ctx): GejuHit | null {
 }
 
 /** 特殊：丙日主 + 水透 → 日照江河。*/
-export function judgeRiZhao(ctx: Ctx): GejuHit | null {
+export function judgeRiZhao(ctx: Ctx): GejuDraft | null {
   if (ctx.dayGan !== '丙') return null
   if (!ctx.touWx('水')) return null
   return { name: '日照江河', note: '丙火照水' }
@@ -546,29 +684,29 @@ function checkZhuanWang(ctx: Ctx, targetWx: string): { note: string } | null {
 }
 
 /** 曲直格：甲乙木日主专旺。 */
-export function isQuZhiGe(ctx: Ctx): GejuHit | null {
+export function isQuZhiGe(ctx: Ctx): GejuDraft | null {
   const r = checkZhuanWang(ctx, '木')
   return r ? { name: '曲直格', note: r.note } : null
 }
 /** 炎上格：丙丁火日主专旺。 */
-export function isYanShangGe(ctx: Ctx): GejuHit | null {
+export function isYanShangGe(ctx: Ctx): GejuDraft | null {
   const r = checkZhuanWang(ctx, '火')
   return r ? { name: '炎上格', note: r.note } : null
 }
 /** 稼穑格：戊己土日主专旺且月令辰戌丑未。 */
-export function isJiaSeGe(ctx: Ctx): GejuHit | null {
+export function isJiaSeGe(ctx: Ctx): GejuDraft | null {
   if (ctx.dayWx !== '土') return null
   if (!['辰', '戌', '丑', '未'].includes(ctx.monthZhi)) return null
   const r = checkZhuanWang(ctx, '土')
   return r ? { name: '稼穑格', note: `月令 ${ctx.monthZhi} ; ${r.note}` } : null
 }
 /** 从革格：庚辛金日主专旺。 */
-export function isCongGeGe(ctx: Ctx): GejuHit | null {
+export function isCongGeGe(ctx: Ctx): GejuDraft | null {
   const r = checkZhuanWang(ctx, '金')
   return r ? { name: '从革格', note: r.note } : null
 }
 /** 润下格：壬癸水日主专旺。 */
-export function isRunXiaGe(ctx: Ctx): GejuHit | null {
+export function isRunXiaGe(ctx: Ctx): GejuDraft | null {
   const r = checkZhuanWang(ctx, '水')
   return r ? { name: '润下格', note: r.note } : null
 }
@@ -592,21 +730,21 @@ function checkCong(ctx: Ctx, target: ShishenCat, targetWx: string): { note: stri
 }
 
 /** 从财格：身极弱 + 从财。 */
-export function isCongCaiGe(ctx: Ctx): GejuHit | null {
+export function isCongCaiGe(ctx: Ctx): GejuDraft | null {
   const caiWx = WX_CONTROLS[ctx.dayWx]
   const r = checkCong(ctx, '财', caiWx)
   return r ? { name: '从财格', note: r.note } : null
 }
 
 /** 从杀格：身极弱 + 从官杀。 */
-export function isCongShaGe(ctx: Ctx): GejuHit | null {
+export function isCongShaGe(ctx: Ctx): GejuDraft | null {
   const ksWx = WX_CONTROLLED_BY[ctx.dayWx]
   const r = checkCong(ctx, '官杀', ksWx)
   return r ? { name: '从杀格', note: r.note } : null
 }
 
 /** 弃命从势：身极弱 + 食伤/财/官杀 三方均有透干。 */
-export function isQiMingCongShi(ctx: Ctx): GejuHit | null {
+export function isQiMingCongShi(ctx: Ctx): GejuDraft | null {
   if (!ctx.shenRuo) return null
   if (!ctx.touCat('食伤')) return null
   if (!ctx.touCat('财')) return null
@@ -617,7 +755,7 @@ export function isQiMingCongShi(ctx: Ctx): GejuHit | null {
 
 // ——————————————————————— 主入口 ———————————————————————
 
-export const DETECTORS: Record<string, (ctx: Ctx) => GejuHit | null> = {
+export const DETECTORS: Record<string, (ctx: Ctx) => GejuDraft | null> = {
   // 正格
   建禄格: isJianLuGe,
   魁罡格: isKuiGangGe,
@@ -646,11 +784,12 @@ export const DETECTORS: Record<string, (ctx: Ctx) => GejuHit | null> = {
   财多身弱: isCaiDuoShenRuo,
   // 五行象法 (成对判定，key 为对关系标识)
   水火对: judgeShuiHuo,   // → 水火既济 / 水火相战
-  木火对: judgeMuHuo,     // → 木火通明 / 木多火塞
+  木火对: judgeMuHuo,     // → 木火相煎 / 木火通明 / 木多火塞
   土金对: judgeTuJin,     // → 土金毓秀 / 土重金埋
-  火金对: judgeHuoJin,    // → 金火铸印 / 火旺金衰
-  水木对: judgeShuiMu,    // → 水木清华
-  金水对: judgeJinShui,   // → 金寒水冷
+  火金对: judgeHuoJin,    // → 火多金熔 / 火旺金衰 / 金火铸印
+  火土对: judgeHuoTu,     // → 火土夹带 / 火炎土燥
+  水木对: judgeShuiMu,    // → 水木清华 / 水多木漂 / 水冷木寒
+  金水对: judgeJinShui,   // → 金寒水冷 / 金白水清
   木土对: judgeMuTu,      // → 木疏厚土
   金木对: judgeJinMu,     // → 斧斤伐木
   寒木向阳: judgeHanMu,
@@ -667,14 +806,19 @@ export const DETECTORS: Record<string, (ctx: Ctx) => GejuHit | null> = {
   弃命从势: isQiMingCongShi,
 }
 
+function enrich(d: GejuDraft): GejuHit {
+  const m = META[d.name] ?? { quality: 'neutral' as const, category: '特殊格' as const }
+  return { ...d, quality: m.quality, category: m.category }
+}
+
 export function detectGeju(pillars: Pillar[]): GejuHit[] {
   if (pillars.length !== 4) return []
   const ctx = buildCtx(pillars)
   const hits: GejuHit[] = []
-  for (const [_, detect] of Object.entries(DETECTORS)) {
+  for (const detect of Object.values(DETECTORS)) {
     const h = detect(ctx)
     if (!h) continue
-    hits.push({ name: h.name, note: h.note })
+    hits.push(enrich(h))
   }
   return hits
 }

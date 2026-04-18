@@ -10,6 +10,7 @@ import {
 } from '@jabberwocky238/bazi-engine'
 import type { SkillCategory } from './skills'
 import { ganWuxing, zhiWuxing, shishenWuxing } from './wuxing'
+import { zizuoState } from './zizuo'
 
 export interface Pillar {
   label: string
@@ -26,6 +27,7 @@ export interface Pillar {
   hideShishen: string[]
   hideShishenWuxings: string[]
   shensha: string[]
+  zizuo: string
 }
 
 export interface BaziResult {
@@ -95,6 +97,7 @@ const EMPTY_PILLAR: Pillar = {
   hideShishen: [],
   hideShishenWuxings: [],
   shensha: [],
+  zizuo: '',
 }
 
 function compute(year: number, month: number, day: number, hour: number, sex: Sex): BaziResult {
@@ -143,6 +146,7 @@ function compute(year: number, month: number, day: number, hour: number, sex: Se
       hideShishen: hideSs,
       hideShishenWuxings: hideSs.map((s) => shishenWuxing(dayGan, s)),
       shensha: shensha[ssKey[i]],
+      zizuo: zizuoState(p.gan, p.zhi),
     }
   })
 

@@ -5,6 +5,7 @@ import { ShishenCell } from './ShishenCell'
 import { GanZhiCell } from './GanZhiCell'
 import { CangGanCell } from './CangGanCell'
 import { ShenshaCell } from './ShenshaCell'
+import { SkillLink } from '@@/SkillLink'
 
 export function BaziChart({ pillars }: { pillars: Pillar[] }) {
   return (
@@ -55,6 +56,17 @@ export function BaziChart({ pillars }: { pillars: Pillar[] }) {
           </Row>
           <Row label="纳音">
             {pillars.map((p) => <td key={p.label} className={cellBase}>{p.nayin}</td>)}
+          </Row>
+          <Row label="自坐">
+            {pillars.map((p) => (
+              <td key={p.label} className={cellBase}>
+                {p.zizuo ? (
+                  <SkillLink category="zizuo" name={p.zizuo}>{p.zizuo}</SkillLink>
+                ) : (
+                  <span className="text-slate-300 dark:text-slate-700">—</span>
+                )}
+              </td>
+            ))}
           </Row>
           <Row label="神煞" last>
             {pillars.map((p) => <ShenshaCell key={p.label} items={p.shensha} />)}
