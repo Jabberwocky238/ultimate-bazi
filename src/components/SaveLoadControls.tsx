@@ -77,7 +77,10 @@ export function SaveLoadControls() {
 
   const [entries, setEntries] = useState<SavedEntry[]>([])
   const [open, setOpen] = useState(false)
+  const [popStyle, setPopStyle] = useState<React.CSSProperties>({})
   const wrapRef = useRef<HTMLDivElement>(null)
+  const loadBtnRef = useRef<HTMLButtonElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     seedIfAbsent()
@@ -87,7 +90,10 @@ export function SaveLoadControls() {
   useEffect(() => {
     if (!open) return
     const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Node
+      if (wrapRef.current?.contains(t)) return
+      if (popRef.current?.contains(t)) return
+      setOpen(false)
     }
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
@@ -97,6 +103,35 @@ export function SaveLoadControls() {
     return () => {
       document.removeEventListener('mousedown', onDown)
       document.removeEventListener('keydown', onEsc)
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const compute = () => {
+      const btn = loadBtnRef.current
+      if (!btn) return
+      const rect = btn.getBoundingClientRect()
+      const margin = 8
+      const width = Math.min(352, window.innerWidth - margin * 2)
+      let left = rect.left
+      if (left + width > window.innerWidth - margin) {
+        left = window.innerWidth - width - margin
+      }
+      if (left < margin) left = margin
+      setPopStyle({
+        position: 'fixed',
+        top: rect.bottom + margin,
+        left,
+        width,
+      })
+    }
+    compute()
+    window.addEventListener('resize', compute)
+    window.addEventListener('scroll', compute, true)
+    return () => {
+      window.removeEventListener('resize', compute)
+      window.removeEventListener('scroll', compute, true)
     }
   }, [open])
 
@@ -147,7 +182,7 @@ export function SaveLoadControls() {
   return (
     <div className="relative flex items-center gap-2" ref={wrapRef}>
       <button type="button" onClick={onSave} className={btnCls}>保存</button>
-      <button type="button" onClick={onToggleLoad} className={btnCls}>
+      <button ref={loadBtnRef} type="button" onClick={onToggleLoad} className={btnCls}>
         加载 <span className="text-xs">▾</span>
       </button>
       <button
@@ -159,7 +194,11 @@ export function SaveLoadControls() {
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 md:left-0 md:right-auto mt-2 z-20 w-[min(22rem,calc(100vw-2rem))] max-h-80 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
+        <div
+          ref={popRef}
+          style={popStyle}
+          className="z-50 max-h-80 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl"
+        >
           {entries.length === 0 ? (
             <div className="px-3 py-4 text-sm text-slate-500">暂无保存记录</div>
           ) : (

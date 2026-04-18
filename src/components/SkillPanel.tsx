@@ -10,6 +10,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   tiangan: '天干',
   dizhi: '地支',
   gongwei: '宫位',
+  geju: '格局',
 }
 
 export function SkillPanel() {

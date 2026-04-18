@@ -6,6 +6,7 @@ import { SkillIndex } from '@@/SkillIndex'
 import { SkillPanel } from '@@/SkillPanel'
 import { ShishenProportion } from '@@/ShishenProportion'
 import { DayMasterRelations } from '@@/DayMasterRelations'
+import { GejuPanel } from '@@/GejuPanel'
 import { Footer } from '@@/Footer'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <BaziMeta solar={result.solarStr} lunar={result.lunarStr} />
           <BaziChart pillars={result.pillars} />
           <DayMasterRelations />
+          <GejuPanel pillars={result.pillars} />
           <ShishenProportion pillars={result.pillars} />
           <SkillIndex pillars={result.pillars} />
         </section>
