@@ -54,7 +54,7 @@ const META: Record<string, { quality: GejuQuality; category: GejuCategory }> = {
   伤官生财: { quality: 'good', category: '十神格' },
   伤官佩印: { quality: 'good', category: '十神格' },
   食伤泄秀: { quality: 'good', category: '十神格' },
-  财官印全: { quality: 'good', category: '十神格' },
+  财官印全: { quality: 'good', category: '特殊格' },
   羊刃驾杀: { quality: 'good', category: '十神格' },
 
   // 十神格 (凶/中性)
