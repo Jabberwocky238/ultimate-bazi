@@ -1,0 +1,122 @@
+import { create } from 'zustand'
+import { Solar } from 'lunar-typescript'
+import {
+  computeShensha,
+  computeShishen,
+  type BaziInput,
+  type Gan,
+  type Zhi,
+  type Sex,
+} from '@jabberwocky238/bazi-engine'
+
+export interface Pillar {
+  label: string
+  gz: string
+  gan: string
+  zhi: string
+  wuxing: string
+  nayin: string
+  hide: string
+  shishen: string
+  hideShishen: string[]
+  shensha: string[]
+}
+
+export interface BaziResult {
+  solarStr: string
+  lunarStr: string
+  pillars: Pillar[]
+}
+
+interface BaziState {
+  year: number
+  month: number
+  day: number
+  hour: number
+  sex: Sex
+  result: BaziResult
+  setDate: (d: { year: number; month: number; day: number; hour: number; sex: Sex }) => void
+  syncToUrl: () => void
+}
+
+function parseIntOr(value: string | null, fallback: number): number {
+  if (value === null) return fallback
+  const n = parseInt(value, 10)
+  return Number.isFinite(n) ? n : fallback
+}
+
+function readQuery() {
+  const params = new URLSearchParams(window.location.search)
+  const sexRaw = parseIntOr(params.get('sex'), 1)
+  return {
+    year: parseIntOr(params.get('year'), 2003),
+    month: parseIntOr(params.get('month'), 8),
+    day: parseIntOr(params.get('day'), 4),
+    hour: parseIntOr(params.get('hour'), 8),
+    sex: (sexRaw === 0 ? 0 : 1) as Sex,
+  }
+}
+
+function compute(year: number, month: number, day: number, hour: number, sex: Sex): BaziResult {
+  const solar = Solar.fromYmdHms(year, month, day, hour, 0, 0)
+  const lunar = solar.getLunar()
+  const ec = lunar.getEightChar()
+
+  const input: BaziInput = {
+    year: { gan: ec.getYearGan() as Gan, zhi: ec.getYearZhi() as Zhi },
+    month: { gan: ec.getMonthGan() as Gan, zhi: ec.getMonthZhi() as Zhi },
+    day: { gan: ec.getDayGan() as Gan, zhi: ec.getDayZhi() as Zhi },
+    hour: { gan: ec.getTimeGan() as Gan, zhi: ec.getTimeZhi() as Zhi },
+    sex,
+  }
+  const shensha = computeShensha(input)
+  const shishen = computeShishen(input)
+
+  const base = [
+    { label: '年柱', gz: ec.getYear(), gan: input.year.gan, zhi: input.year.zhi, wuxing: ec.getYearWuXing(), nayin: ec.getYearNaYin(), hide: ec.getYearHideGan() },
+    { label: '月柱', gz: ec.getMonth(), gan: input.month.gan, zhi: input.month.zhi, wuxing: ec.getMonthWuXing(), nayin: ec.getMonthNaYin(), hide: ec.getMonthHideGan() },
+    { label: '日柱', gz: ec.getDay(), gan: input.day.gan, zhi: input.day.zhi, wuxing: ec.getDayWuXing(), nayin: ec.getDayNaYin(), hide: ec.getDayHideGan() },
+    { label: '时柱', gz: ec.getTime(), gan: input.hour.gan, zhi: input.hour.zhi, wuxing: ec.getTimeWuXing(), nayin: ec.getTimeNaYin(), hide: ec.getTimeHideGan() },
+  ] as const
+
+  const ssKey = ['year', 'month', 'day', 'hour'] as const
+
+  return {
+    solarStr: solar.toYmdHms(),
+    lunarStr: lunar.toString(),
+    pillars: base.map((p, i) => ({
+      label: p.label,
+      gz: p.gz,
+      gan: p.gan,
+      zhi: p.zhi,
+      wuxing: p.wuxing,
+      nayin: p.nayin,
+      hide: p.hide.join('、'),
+      shishen: shishen.十神[i],
+      hideShishen: shishen.藏干十神[i],
+      shensha: shensha[ssKey[i]],
+    })),
+  }
+}
+
+const initial = readQuery()
+
+export const useBaziStore = create<BaziState>((set, get) => ({
+  ...initial,
+  result: compute(initial.year, initial.month, initial.day, initial.hour, initial.sex),
+  setDate: ({ year, month, day, hour, sex }) => {
+    set({ year, month, day, hour, sex, result: compute(year, month, day, hour, sex) })
+  },
+  syncToUrl: () => {
+    const { year, month, day, hour, sex } = get()
+    const q = new URLSearchParams({
+      year: String(year),
+      month: String(month),
+      day: String(day),
+      hour: String(hour),
+      sex: String(sex),
+    })
+    const next = `${window.location.pathname}?${q.toString()}`
+    window.history.replaceState(null, '', next)
+  },
+}))
