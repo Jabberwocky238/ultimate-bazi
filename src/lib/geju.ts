@@ -410,11 +410,16 @@ export function isShiShenZhiSha(ctx: Ctx): GejuDraft | null {
   return { name: '食神制杀', note: '食神透干通根，制七杀' }
 }
 
-/** 枭神夺食：偏印透 + 食神存在 + 无财救(财不透)。 */
+/**
+ * 枭神夺食：偏印透 + 食神存在 + 无财救 + 无伤官夺命（月令伤官且伤官透干则本格为伤官佩印）。
+ * 互斥：月令伤官 + 伤官透干 → 结构为伤官格，偏印作佩印用，不作枭印夺食论。
+ */
 export function isXiaoShenDuoShi(ctx: Ctx): GejuDraft | null {
   if (!ctx.tou('偏印')) return null
   if (!ctx.has('食神')) return null
   if (ctx.touCat('财')) return null
+  // 月令伤官且伤官透干 → 本格为伤官格 + 偏印佩印，非枭神夺食
+  if (ctx.mainAt('伤官').includes(1) && ctx.tou('伤官')) return null
   return { name: '枭神夺食', note: '偏印透克食神，无财救' }
 }
 
