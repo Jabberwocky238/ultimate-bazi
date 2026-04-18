@@ -16,12 +16,12 @@ export function GanZhiCell({
     <td
       className={[
         'border-b border-r last:border-r-0 border-slate-200 dark:border-slate-800',
-        'bg-gradient-to-b to-transparent border-t-[3px] py-3 md:py-4',
+        'bg-gradient-to-b to-transparent border-t-[3px] py-2.5 md:py-4 px-1',
         WUXING_BORDER[ganWuxing] ?? 'border-slate-300',
         WUXING_FROM[ganWuxing] ?? '',
       ].join(' ')}
     >
-      <div className="text-4xl md:text-5xl font-bold leading-none tracking-wider">
+      <div className="text-3xl md:text-4xl lg:text-5xl font-bold leading-none tracking-wide">
         <div className={WUXING_TEXT[ganWuxing] ?? ''}>
           <SkillLink category="tiangan" name={gan}>{gan}</SkillLink>
         </div>

@@ -7,8 +7,8 @@
 
   --color-wood: #15803d;
   --color-fire: #dc2626;
-  --color-earth: #b45309;
-  --color-metal: #64748b;
+  --color-earth: #854d0e;
+  --color-metal: #ca8a04;
   --color-water: #1d4ed8;
 }
 
@@ -39,8 +39,8 @@
   :root {
     --color-wood: #4ade80;
     --color-fire: #f87171;
-    --color-earth: #fbbf24;
-    --color-metal: #cbd5e1;
+    --color-earth: #d97706;
+    --color-metal: #facc15;
     --color-water: #60a5fa;
   }
 }

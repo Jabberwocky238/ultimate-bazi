@@ -20,7 +20,7 @@ export interface Pillar {
   zhiWuxing: string
   wuxing: string
   nayin: string
-  hide: string
+  hideGans: string[]
   shishen: string
   hideShishen: string[]
   shensha: string[]
@@ -105,7 +105,7 @@ function compute(year: number, month: number, day: number, hour: number, sex: Se
       zhiWuxing: zhiWuxing(p.zhi),
       wuxing: p.wuxing,
       nayin: p.nayin,
-      hide: p.hide.join('、'),
+      hideGans: [...p.hide],
       shishen: shishen.十神[i],
       hideShishen: shishen.藏干十神[i],
       shensha: shensha[ssKey[i]],
