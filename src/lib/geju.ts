@@ -26,7 +26,7 @@ import type { Pillar } from './store'
 import { ganWuxing } from './wuxing'
 
 export type GejuQuality = 'good' | 'bad' | 'neutral'
-export type GejuCategory = '从格' | '十神格' | '五行格' | '专旺格' | '特殊格'
+export type GejuCategory = '从格' | '十神格' | '五行格' | '专旺格' | '特殊格' | '正格'
 
 export interface GejuHit {
   name: string
@@ -45,8 +45,18 @@ const META: Record<string, { quality: GejuQuality; category: GejuCategory }> = {
   日照江河: { quality: 'good', category: '特殊格' },
   寒木向阳: { quality: 'good', category: '特殊格' },
 
+  // 正格 (月令单一十神成格，纯粹)
+  建禄格: { quality: 'good', category: '正格' },
+  阳刃格: { quality: 'neutral', category: '正格' },
+  七杀格: { quality: 'good', category: '正格' },
+  食神格: { quality: 'good', category: '正格' },
+  伤官格: { quality: 'good', category: '正格' },
+  正财格: { quality: 'good', category: '正格' },
+  偏财格: { quality: 'good', category: '正格' },
+  正印格: { quality: 'good', category: '正格' },
+  偏印格: { quality: 'good', category: '正格' },
+
   // 十神格 (吉)
-  建禄格: { quality: 'good', category: '十神格' },
   官印相生: { quality: 'good', category: '十神格' },
   杀印相生: { quality: 'good', category: '十神格' },
   食神制杀: { quality: 'good', category: '十神格' },
@@ -55,7 +65,9 @@ const META: Record<string, { quality: GejuQuality; category: GejuCategory }> = {
   伤官佩印: { quality: 'good', category: '十神格' },
   食伤泄秀: { quality: 'good', category: '十神格' },
   财官印全: { quality: 'good', category: '特殊格' },
-  羊刃驾杀: { quality: 'good', category: '十神格' },
+  正官格: { quality: 'good', category: '正格' },
+  羊刃驾杀: { quality: 'neutral', category: '特殊格' },
+  羊刃劫财: { quality: 'neutral', category: '特殊格' },
 
   // 十神格 (凶/中性)
   官杀混杂: { quality: 'bad', category: '十神格' },
@@ -65,7 +77,6 @@ const META: Record<string, { quality: GejuQuality; category: GejuCategory }> = {
   以财破印: { quality: 'bad', category: '十神格' },
   财多身弱: { quality: 'bad', category: '十神格' },
   比劫重重: { quality: 'bad', category: '十神格' },
-  羊刃劫财: { quality: 'bad', category: '十神格' },
 
   // 专旺格
   曲直格: { quality: 'good', category: '专旺格' },
@@ -337,6 +348,120 @@ export function isJianLuGe(ctx: Ctx): GejuDraft | null {
     name: '建禄格',
     note: `月令 ${ctx.monthZhi} 临日主 ${ctx.dayGan} 之禄，带官杀/财/食伤为用`,
   }
+}
+
+/**
+ * 通用"月令X格"工厂：
+ *   - 月令主气为 target 十神 OR (target 透干 + 月令地支藏 target)
+ *   - 返回基础成立的草稿；具体格局的额外条件由调用方再判。
+ */
+function monthGeFormed(ctx: Ctx, target: string): boolean {
+  const monthMain = ctx.pillars[1].hideShishen[0] ?? ''
+  if (monthMain === target) return true
+  const monthHide = ctx.pillars[1].hideShishen.includes(target)
+  return ctx.tou(target) && monthHide
+}
+
+/**
+ * 正官格：月令正官 + 正官透根 + 不混七杀 + 无伤官克官。
+ */
+export function isZhengGuanGe(ctx: Ctx): GejuDraft | null {
+  if (!monthGeFormed(ctx, '正官')) return null
+  if (!ctx.tou('正官')) return null
+  if (ctx.tou('七杀')) return null
+  if (ctx.tou('伤官')) return null
+  return { name: '正官格', note: '月令正官透干，不混杀无伤' }
+}
+
+/**
+ * 七杀格：月令七杀 + 有制(食)或有化(印) + 不混正官。
+ * 《子平真诠》"七杀为用，制之以食，化之以印，皆为贵格"。
+ */
+export function isQiShaGe(ctx: Ctx): GejuDraft | null {
+  if (!monthGeFormed(ctx, '七杀')) return null
+  if (ctx.tou('正官')) return null                // 不混官
+  const hasRestrict = ctx.tou('食神') || ctx.touCat('印')
+  if (!hasRestrict) return null
+  return {
+    name: '七杀格',
+    note: `月令七杀 + ${ctx.tou('食神') ? '食神制' : '印化'}`,
+  }
+}
+
+/**
+ * 食神格：月令食神 + 食神透根 + 身不极弱 + 无偏印夺食。
+ */
+export function isShiShenGe(ctx: Ctx): GejuDraft | null {
+  if (!monthGeFormed(ctx, '食神')) return null
+  if (!ctx.tou('食神')) return null
+  if (ctx.tou('偏印')) return null
+  if (ctx.selfSupportN === 0) return null
+  return { name: '食神格', note: '月令食神透干吐秀' }
+}
+
+/**
+ * 伤官格：月令伤官 + 伤官透根 + 无正官(伤官见官)。
+ */
+export function isShangGuanGe(ctx: Ctx): GejuDraft | null {
+  if (!monthGeFormed(ctx, '伤官')) return null
+  if (!ctx.tou('伤官')) return null
+  if (!ctx.zang('伤官')) return null
+  if (ctx.tou('正官')) return null
+  return { name: '伤官格', note: '月令伤官透干通根，无官可见' }
+}
+
+/**
+ * 正财格：月令正财 + 正财透根 + 日主不弱。
+ */
+export function isZhengCaiGe(ctx: Ctx): GejuDraft | null {
+  if (!monthGeFormed(ctx, '正财')) return null
+  if (!ctx.tou('正财')) return null
+  if (!ctx.zang('正财')) return null
+  if (ctx.shenRuo) return null
+  return { name: '正财格', note: '月令正财透干通根，身可任' }
+}
+
+/**
+ * 偏财格：月令偏财 + 偏财透根 + 身不极弱。
+ */
+export function isPianCaiGe(ctx: Ctx): GejuDraft | null {
+  if (!monthGeFormed(ctx, '偏财')) return null
+  if (!ctx.tou('偏财')) return null
+  if (!ctx.zang('偏财')) return null
+  if (ctx.selfSupportN === 0) return null
+  return { name: '偏财格', note: '月令偏财透干通根' }
+}
+
+/**
+ * 正印格：月令正印 + 正印透根。
+ */
+export function isZhengYinGe(ctx: Ctx): GejuDraft | null {
+  if (!monthGeFormed(ctx, '正印')) return null
+  if (!ctx.tou('正印')) return null
+  return { name: '正印格', note: '月令正印透干' }
+}
+
+/**
+ * 偏印格：月令偏印 + 偏印透根 + 无食神被夺 (若有食神须有财护或比劫泄)。
+ */
+export function isPianYinGe(ctx: Ctx): GejuDraft | null {
+  if (!monthGeFormed(ctx, '偏印')) return null
+  if (!ctx.tou('偏印')) return null
+  // 枭夺食自动破格 (让位枭神夺食)
+  if (ctx.tou('食神') && !ctx.touCat('财')) return null
+  return { name: '偏印格', note: '月令偏印透干' }
+}
+
+/**
+ * 阳刃格：日主阳干 + 月令为刃 + 有官杀制。
+ * 《子平真诠》"阳刃用官则喜露，用杀则不忌——刃以杀制为贵"。
+ */
+export function isYangRenGe(ctx: Ctx): GejuDraft | null {
+  if (!ctx.dayYang) return null
+  if (ctx.monthZhi !== YANG_REN[ctx.dayGan]) return null
+  // 有官杀制 (至少一透)
+  if (!ctx.touCat('官杀')) return null
+  return { name: '阳刃格', note: `月令 ${ctx.monthZhi} 为日主阳刃，带官杀制` }
 }
 
 /**
@@ -998,8 +1123,17 @@ export function isQiMingCongShi(ctx: Ctx): GejuDraft | null {
 // ——————————————————————— 主入口 ———————————————————————
 
 export const DETECTORS: Record<string, (ctx: Ctx) => GejuDraft | null> = {
-  // 正格
+  // 正格 (月令单一十神)
   建禄格: isJianLuGe,
+  阳刃格: isYangRenGe,
+  正官格: isZhengGuanGe,
+  七杀格: isQiShaGe,
+  食神格: isShiShenGe,
+  伤官格: isShangGuanGe,
+  正财格: isZhengCaiGe,
+  偏财格: isPianCaiGe,
+  正印格: isZhengYinGe,
+  偏印格: isPianYinGe,
   魁罡格: isKuiGangGe,
   壬骑龙背: isRenQiLongBei,
   // 官杀

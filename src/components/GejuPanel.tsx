@@ -13,14 +13,15 @@ const QUALITY_BORDER: Record<GejuQuality, string> = {
 
 /** 字体颜色：表示所属类别 */
 const CATEGORY_TEXT: Record<GejuCategory, string> = {
+  正格: 'text-purple-700 dark:text-purple-400',
   从格: 'text-indigo-700 dark:text-indigo-400',
   十神格: 'text-amber-700 dark:text-amber-400',
   五行格: 'text-sky-700 dark:text-sky-400',
   专旺格: 'text-emerald-700 dark:text-emerald-400',
-  特殊格: 'text-purple-700 dark:text-purple-400',
+  特殊格: 'text-red-700 dark:text-red-400',
 }
 
-const CATEGORY_ORDER: GejuCategory[] = ['十神格', '五行格', '专旺格', '从格', '特殊格']
+const CATEGORY_ORDER: GejuCategory[] = ['正格', '十神格', '五行格', '专旺格', '从格', '特殊格']
 
 export function GejuPanel({ pillars }: { pillars: Pillar[] }) {
   const hits = detectGeju(pillars)
