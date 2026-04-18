@@ -366,11 +366,20 @@ export function isRenQiLongBei(ctx: Ctx): GejuDraft | null {
 
 // ——————————————————————— 官杀 ———————————————————————
 
-/** 官杀混杂：正官与七杀同时存在 (天干或地支)。 */
+/**
+ * 官杀混杂：正官与七杀同时存在。
+ * 三级形态：
+ *   - 显混杂 = 两者俱透干（最典型）
+ *   - 隐混杂 = 一透一藏（轻度）
+ *   - 暗混杂 = 均藏支（气微但仍构成结构性混杂）
+ */
 export function isGuanShaHunZa(ctx: Ctx): GejuDraft | null {
   if (!ctx.has('正官') || !ctx.has('七杀')) return null
-  const form = ctx.tou('正官') && ctx.tou('七杀') ? '天干双透'
-    : ctx.tou('正官') || ctx.tou('七杀') ? '一透一藏' : '均藏'
+  const bothTou = ctx.tou('正官') && ctx.tou('七杀')
+  const oneTou = ctx.tou('正官') || ctx.tou('七杀')
+  const form = bothTou ? '天干双透 (显混杂)'
+    : oneTou ? '一透一藏 (隐混杂)'
+    : '均藏支 (暗混杂)'
   return { name: '官杀混杂', note: `正官 + 七杀 ${form}` }
 }
 
