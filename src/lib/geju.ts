@@ -373,14 +373,24 @@ export function isGuanYinXiangSheng(ctx: Ctx): GejuDraft | null {
 }
 
 /**
- * 杀印相生：七杀透干或月令七杀 + 印透干通根。
+ * 杀印相生：七杀透干或月令七杀 + 印透干。
  * 允许正官藏支（不透则不算混杂）。
+ *
+ * 互斥条件：**伤官合杀成立时七杀已被合去，无杀可化**。
+ * 依《子平真诠·论七杀》"杀用印则不用食伤，杀用食伤则不用印"——
+ * 七杀用神排他；《子平真诠·论伤官》"合杀者，取其合以去杀"——
+ * 合后杀已不独立存在，不能再论相生。
  */
 export function isShaYinXiangSheng(ctx: Ctx): GejuDraft | null {
   const shaPresent = ctx.tou('七杀') || ctx.monthCat === '官杀'
   if (!shaPresent) return null
-  if (ctx.tou('正官')) return null          // 放宽：允许正官藏支
+  if (ctx.tou('正官')) return null
   if (!ctx.touCat('印')) return null
+  // 伤官合杀互斥：阴日主 + 伤官与七杀紧贴双透 → 杀已合去，返 null
+  if (!ctx.dayYang && ctx.tou('伤官') && ctx.tou('七杀') &&
+      ctx.adjacentTou('伤官', '七杀')) {
+    return null
+  }
   return { name: '杀印相生', note: '七杀配印，化杀生身' }
 }
 
@@ -418,13 +428,15 @@ export function isShangGuanJianGuan(ctx: Ctx): GejuDraft | null {
 }
 
 /**
- * 伤官合杀：日主为阴干（乙/丁/己/辛/癸）+ 伤官与七杀**都透干**。
+ * 伤官合杀：日主为阴干 + 伤官与七杀**都透干** + 位置紧贴（相邻柱）。
  * 《渊海子平》：五合只在天干，阳干无此结构。
+ * 《滴天髓·通神论》"合之力以紧贴为真"——年/时遥合作不成真合。
  */
 export function isShangGuanHeSha(ctx: Ctx): GejuDraft | null {
-  if (ctx.dayYang) return null              // 只有阴日主的伤官与七杀构成五合
+  if (ctx.dayYang) return null
   if (!ctx.tou('伤官') || !ctx.tou('七杀')) return null
-  return { name: '伤官合杀', note: `阴日主 ${ctx.dayGan} 伤官七杀双透五合` }
+  if (!ctx.adjacentTou('伤官', '七杀')) return null  // 紧贴才真合
+  return { name: '伤官合杀', note: `阴日主 ${ctx.dayGan} 伤官七杀紧贴双透五合` }
 }
 
 /** 伤官生财：伤官透 + 财有力 + 身不弱 + 印不透(以免克伤)。 */
@@ -738,19 +750,31 @@ export function judgeRiZhao(ctx: Ctx): GejuDraft | null {
  * 专旺共用判据 (定性)：
  * - 日主属 targetWx
  * - 月令主气为日主同类或印
- * - 地支主气中 (同类+印) ≥ 3
- * - 无财官透干
+ * - 地支 (同类+印) 主气 ≥ 3
+ * - 无官杀透 (克星一透即破，依《渊海子平》"无 X 相克"铁律)
+ * - 财透位数 ≤ maxCaiTou (默认 ∞，稼穑另传 1 位)
+ *
+ * 曲直/炎上/从革/润下 md 均未把财透列为破条件 — 只忌官杀。
+ * 稼穑 md 条件 5 明列"水多冲土"，一位有根可容，二位以上破。
  */
-function checkZhuanWang(ctx: Ctx, targetWx: string): { note: string } | null {
+function checkZhuanWang(
+  ctx: Ctx,
+  targetWx: string,
+  maxCaiTou = Infinity,
+): { note: string } | null {
   if (ctx.dayWx !== targetWx) return null
   if (!ctx.deLing) return null
   const selfWx = ctx.dayWx
   const yinWx = WX_GENERATED_BY[selfWx]
   const supportZhi = ctx.zhiMainWxCount(selfWx) + ctx.zhiMainWxCount(yinWx)
   if (supportZhi < 3) return null
-  if (ctx.touCat('财')) return null
   if (ctx.touCat('官杀')) return null
-  return { note: `地支主气 ${selfWx}+${yinWx} 共 ${supportZhi} 位，无财官透` }
+  const caiTouN =
+    (ctx.tou('正财') ? 1 : 0) + (ctx.tou('偏财') ? 1 : 0)
+  if (caiTouN > maxCaiTou) return null
+  return {
+    note: `地支 ${selfWx}+${yinWx} ${supportZhi} 位${caiTouN ? `，财透${caiTouN}` : '，无官杀'}`,
+  }
 }
 
 /** 曲直格：甲乙木日主专旺。 */
@@ -763,11 +787,11 @@ export function isYanShangGe(ctx: Ctx): GejuDraft | null {
   const r = checkZhuanWang(ctx, '火')
   return r ? { name: '炎上格', note: r.note } : null
 }
-/** 稼穑格：戊己土日主专旺且月令辰戌丑未。 */
+/** 稼穑格：戊己土日主专旺 + 月令辰戌丑未 + 财透 ≤ 1 (水不多冲土)。 */
 export function isJiaSeGe(ctx: Ctx): GejuDraft | null {
   if (ctx.dayWx !== '土') return null
   if (!['辰', '戌', '丑', '未'].includes(ctx.monthZhi)) return null
-  const r = checkZhuanWang(ctx, '土')
+  const r = checkZhuanWang(ctx, '土', 1)
   return r ? { name: '稼穑格', note: `月令 ${ctx.monthZhi} ; ${r.note}` } : null
 }
 /** 从革格：庚辛金日主专旺。 */

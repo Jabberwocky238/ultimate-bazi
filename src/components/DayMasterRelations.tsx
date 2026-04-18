@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { wuxingRelations, isYangGan, type Gan } from '@jabberwocky238/bazi-engine'
 import { useBaziStore } from '@/lib/store'
 import { WUXING_TEXT, WUXING_BG_SOFT, WUXING_BORDER, ganWuxing } from '@/lib/wuxing'
@@ -30,6 +31,7 @@ const WUXING_TO_GANS: Record<string, { yang: string; yin: string }> = {
 
 export function DayMasterRelations() {
   const pillars = useBaziStore((s) => s.result.pillars)
+  const [open, setOpen] = useState(true)
   const dayGan = pillars[2]?.gan as Gan | undefined
   if (!dayGan) return null
 
@@ -40,10 +42,21 @@ export function DayMasterRelations() {
 
   return (
     <section className="mt-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-4 md:p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <h2 className="text-xs font-medium tracking-[0.25em] uppercase text-slate-500 dark:text-slate-400">
-          五行关系
-        </h2>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className={`w-full flex items-center justify-between gap-3 flex-wrap text-left ${open ? 'mb-4' : ''}`}
+      >
+        <span className="flex items-baseline gap-2">
+          <span className={`text-[11px] inline-block transition-transform ${open ? 'rotate-90' : ''}`}>▸</span>
+          <h2 className="text-xs font-medium tracking-[0.25em] uppercase text-slate-500 dark:text-slate-400">
+            五行关系
+          </h2>
+          <span className="text-[10px] text-slate-400 dark:text-slate-600">
+            {open ? '点击收起' : '点击展开'}
+          </span>
+        </span>
         <div className="flex items-center gap-2 text-sm">
           <span className="text-slate-500 dark:text-slate-400 text-xs">日主</span>
           <span
@@ -58,8 +71,9 @@ export function DayMasterRelations() {
             {yinYang}{dayWx} · {dayGan}{dayWx}
           </span>
         </div>
-      </div>
+      </button>
 
+      {open && (
       <div className="space-y-1">
         {ROWS.map((row) => {
           const target = rel[row.relation]
@@ -91,6 +105,7 @@ export function DayMasterRelations() {
           )
         })}
       </div>
+      )}
     </section>
   )
 }
