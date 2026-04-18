@@ -363,105 +363,176 @@ function monthGeFormed(ctx: Ctx, target: string): boolean {
 }
 
 /**
- * 正官格：月令正官 + 正官透根 + 不混七杀 + 无伤官克官。
+ * 正官格（依《子平真诠·论正官》5 条）：
+ *  1. 月令正官 OR 透 + 月令藏 ✓
+ *  2. 不混七杀 ✓
+ *  3. 无伤官紧贴 ✓
+ *  4. 日主身中偏强 (非身弱)
+ *  5. 正官通根 (非虚透)
  */
 export function isZhengGuanGe(ctx: Ctx): GejuDraft | null {
   if (!monthGeFormed(ctx, '正官')) return null
   if (!ctx.tou('正官')) return null
-  if (ctx.tou('七杀')) return null
-  if (ctx.tou('伤官')) return null
-  return { name: '正官格', note: '月令正官透干，不混杀无伤' }
+  if (!ctx.zang('正官')) return null                 // 条件 5：通根
+  if (ctx.tou('七杀')) return null                    // 条件 2：不混
+  if (ctx.tou('伤官')) return null                    // 条件 3：无伤
+  if (ctx.shenRuo) return null                        // 条件 4：身非弱
+  return { name: '正官格', note: '月令正官透根，不混杀无伤，身可任' }
 }
 
 /**
- * 七杀格：月令七杀 + 有制(食)或有化(印) + 不混正官。
- * 《子平真诠》"七杀为用，制之以食，化之以印，皆为贵格"。
+ * 七杀格（依《子平真诠·论七杀》5 条）：
+ *  1. 月令七杀 OR 透 + 月令藏 ✓
+ *  2. 不混正官 ✓
+ *  3. 有食神制 OR 印化 ✓
+ *  4. 日主有根 (非极弱)
+ *  5. 制化之神通根 (食神或印透且有根)
  */
 export function isQiShaGe(ctx: Ctx): GejuDraft | null {
   if (!monthGeFormed(ctx, '七杀')) return null
-  if (ctx.tou('正官')) return null                // 不混官
-  const hasRestrict = ctx.tou('食神') || ctx.touCat('印')
-  if (!hasRestrict) return null
+  if (ctx.tou('正官')) return null                        // 不混官
+  const foodRooted = ctx.tou('食神') && ctx.zang('食神')  // 食神透通根
+  const yinRooted = ctx.touCat('印') && (ctx.zang('正印') || ctx.zang('偏印'))
+  if (!foodRooted && !yinRooted) return null              // 制化有根
+  if (ctx.selfSupportN === 0) return null                 // 日主非极弱
   return {
     name: '七杀格',
-    note: `月令七杀 + ${ctx.tou('食神') ? '食神制' : '印化'}`,
+    note: `月令七杀 + ${foodRooted ? '食神制 (透根)' : '印化 (透根)'}`,
   }
 }
 
 /**
- * 食神格：月令食神 + 食神透根 + 身不极弱 + 无偏印夺食。
+ * 食神格（依《子平真诠·论食神》5 条必要 + 1 条升格）：
+ *  1. 月令食神 OR 透+月令藏 ✓
+ *  2. 食神透干通根 ✓
+ *  3. 日主有根不极弱 ✓
+ *  4. **无偏印紧贴夺食 OR 有财护食** (md 允许偏印不紧贴)
+ *  5. 不混伤官 ✓
  */
 export function isShiShenGe(ctx: Ctx): GejuDraft | null {
   if (!monthGeFormed(ctx, '食神')) return null
   if (!ctx.tou('食神')) return null
-  if (ctx.tou('偏印')) return null
+  if (!ctx.zang('食神')) return null
+  if (ctx.tou('伤官')) return null                          // 不混伤
   if (ctx.selfSupportN === 0) return null
-  return { name: '食神格', note: '月令食神透干吐秀' }
+  // 偏印紧贴夺食 (月/日邻位 或 日/时邻位) 且无财护 → 破
+  const xiaoDuoShi =
+    ctx.tou('偏印') &&
+    ctx.adjacentTou('偏印', '食神') &&
+    !ctx.touCat('财')
+  if (xiaoDuoShi) return null
+  return { name: '食神格', note: '月令食神透根，不混伤，无枭夺食' }
 }
 
 /**
- * 伤官格：月令伤官 + 伤官透根 + 无正官(伤官见官)。
+ * 伤官格：月令伤官 + 伤官透根 + 无正官 + 不混食神 + 身非极弱(伤泄身)。
+ * 《子平真诠》"伤官见官为祸"；"伤官须有制或有印化"。
  */
 export function isShangGuanGe(ctx: Ctx): GejuDraft | null {
   if (!monthGeFormed(ctx, '伤官')) return null
   if (!ctx.tou('伤官')) return null
   if (!ctx.zang('伤官')) return null
   if (ctx.tou('正官')) return null
-  return { name: '伤官格', note: '月令伤官透干通根，无官可见' }
+  if (ctx.tou('食神')) return null                   // 不混食
+  if (ctx.selfSupportN === 0) return null
+  return { name: '伤官格', note: '月令伤官透根，无官可见，不混食' }
 }
 
 /**
- * 正财格：月令正财 + 正财透根 + 日主不弱。
+ * 正财格（依《子平真诠·论正财/论财》）：
+ *  1. 月令正财 OR 透+月令藏 ✓
+ *  2. 正财透干通根 ✓
+ *  3. 日主身强能任财 (非身弱) ✓
+ *  4. **无比劫紧贴夺财**；若有比劫，须**官杀制之**。
  */
 export function isZhengCaiGe(ctx: Ctx): GejuDraft | null {
   if (!monthGeFormed(ctx, '正财')) return null
   if (!ctx.tou('正财')) return null
   if (!ctx.zang('正财')) return null
   if (ctx.shenRuo) return null
-  return { name: '正财格', note: '月令正财透干通根，身可任' }
+  // 比劫透干 + 无官杀制 → 夺财破
+  if ((ctx.tou('劫财') || ctx.tou('比肩')) && !ctx.touCat('官杀')) return null
+  return { name: '正财格', note: '月令正财透根，身可任，比劫有官杀制' }
 }
 
 /**
- * 偏财格：月令偏财 + 偏财透根 + 身不极弱。
+ * 偏财格（同正财，且偏财更忌比劫）：
+ *  1. 月令偏财 OR 透+月令藏 ✓
+ *  2. 偏财透干通根 ✓
+ *  3. 日主身强 ✓
+ *  4. **无比劫紧贴夺财**；若有比劫，须**食伤通关 或 官杀制之**。
  */
 export function isPianCaiGe(ctx: Ctx): GejuDraft | null {
   if (!monthGeFormed(ctx, '偏财')) return null
   if (!ctx.tou('偏财')) return null
   if (!ctx.zang('偏财')) return null
-  if (ctx.selfSupportN === 0) return null
-  return { name: '偏财格', note: '月令偏财透干通根' }
+  if (ctx.shenRuo) return null
+  const hasBiJie = ctx.tou('劫财') || ctx.tou('比肩')
+  if (hasBiJie && !ctx.touCat('食伤') && !ctx.touCat('官杀')) return null
+  return { name: '偏财格', note: '月令偏财透根，身可任，比劫有食伤/官杀化' }
 }
 
 /**
- * 正印格：月令正印 + 正印透根。
+ * 正印格（依《子平真诠·论印绶》）：
+ *  1. 月令正印 OR 透+月令藏 ✓
+ *  2. 正印透干通根 ✓
+ *  3. **无财星紧贴破印**；若有财，须**比劫隔之** (正偏财均破印)
+ *  4. 日主身弱或身中 (忌身强，印反闷气机)
  */
 export function isZhengYinGe(ctx: Ctx): GejuDraft | null {
   if (!monthGeFormed(ctx, '正印')) return null
   if (!ctx.tou('正印')) return null
-  return { name: '正印格', note: '月令正印透干' }
+  if (!ctx.zang('正印')) return null
+  // 财透 + 无比劫护印 → 破
+  if (ctx.touCat('财') && !ctx.touCat('比劫')) return null
+  // 身强则印多余
+  if (ctx.selfSupportN >= 6) return null
+  return { name: '正印格', note: '月令正印透根，无财紧贴破印' }
 }
 
 /**
- * 偏印格：月令偏印 + 偏印透根 + 无食神被夺 (若有食神须有财护或比劫泄)。
+ * 偏印格（依《子平真诠·论偏印》5 条）：
+ *  1. 月令偏印 OR 透+月令藏 ✓
+ *  2. 偏印透干通根 ✓
+ *  3. **无食神紧贴被克**；若有食神紧贴须**财护食**
+ *  4. 日主不过强
+ *  5. 偏印不过重 (天干 + 主气合计 ≤ 2 位)
  */
 export function isPianYinGe(ctx: Ctx): GejuDraft | null {
   if (!monthGeFormed(ctx, '偏印')) return null
   if (!ctx.tou('偏印')) return null
-  // 枭夺食自动破格 (让位枭神夺食)
-  if (ctx.tou('食神') && !ctx.touCat('财')) return null
-  return { name: '偏印格', note: '月令偏印透干' }
+  if (!ctx.zang('偏印')) return null
+  // 食神紧贴 + 无财护 → 让位枭神夺食
+  const xiao = ctx.tou('偏印') && ctx.adjacentTou('偏印', '食神') && !ctx.touCat('财')
+  if (xiao) return null
+  // 偏印过重 (干+主气 > 2) → 枭神过旺降格
+  const ganCount = ctx.pillars.filter((p) => p.shishen === '偏印').length
+  const mainCount = ctx.mainAt('偏印').length
+  if (ganCount + mainCount > 2) return null
+  if (ctx.selfSupportN >= 6) return null
+  return { name: '偏印格', note: '月令偏印透根，量不过重，食神有护' }
 }
 
 /**
- * 阳刃格：日主阳干 + 月令为刃 + 有官杀制。
- * 《子平真诠》"阳刃用官则喜露，用杀则不忌——刃以杀制为贵"。
+ * 阳刃格（依《子平真诠·论阳刃》5 条）：
+ *  1. 日主阳干 ✓
+ *  2. 月令为刃 ✓
+ *  3. **必有官杀制** (透干) ✓
+ *  4. **官杀通根** (非虚透)
+ *  5. 若取正官制刃，**无伤官** (否则伤官见官反坏)
  */
 export function isYangRenGe(ctx: Ctx): GejuDraft | null {
   if (!ctx.dayYang) return null
   if (ctx.monthZhi !== YANG_REN[ctx.dayGan]) return null
-  // 有官杀制 (至少一透)
   if (!ctx.touCat('官杀')) return null
-  return { name: '阳刃格', note: `月令 ${ctx.monthZhi} 为日主阳刃，带官杀制` }
+  // 官杀通根
+  const gwRooted =
+    (ctx.tou('正官') && ctx.zang('正官')) ||
+    (ctx.tou('七杀') && ctx.zang('七杀'))
+  if (!gwRooted) return null
+  // 用正官制刃时忌伤官 (伤官克官)
+  if (ctx.tou('正官') && !ctx.tou('七杀') && ctx.tou('伤官')) return null
+  return { name: '阳刃格', note: `月令 ${ctx.monthZhi} 阳刃，官杀透根制之` }
 }
 
 /**

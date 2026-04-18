@@ -37,6 +37,7 @@ const PATHS: Record<SkillCategory, Record<string, string>> = {
     阴差阳错: '神煞/阴差阳错.md',
     天乙贵人: '神煞/天乙贵人.md',
     天德贵人: '神煞/天德贵人.md',
+    天厨贵人: '神煞/天厨贵人.md',
     天医贵人: '神煞/天医贵人.md',
     月德贵人: '神煞/月德贵人.md',
     文昌贵人: '神煞/文昌贵人.md',
@@ -75,7 +76,6 @@ const PATHS: Record<SkillCategory, Record<string, string>> = {
     天医: '神煞/天医贵人.md',
     天德合: '神煞/天德合.md',
     月德合: '神煞/月德合.md',
-    天厨贵人: '神煞/天医贵人.md',
     魁罡日: '神煞/魁罡.md',
   },
   tiangan: {
