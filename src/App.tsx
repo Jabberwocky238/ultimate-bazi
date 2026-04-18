@@ -5,6 +5,7 @@ import { BaziChart } from '@@/chart/BaziChart'
 import { SkillIndex } from '@@/SkillIndex'
 import { SkillPanel } from '@@/SkillPanel'
 import { ShishenProportion } from '@@/ShishenProportion'
+import { DayMasterRelations } from '@@/DayMasterRelations'
 import { Footer } from '@@/Footer'
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           <BaziForm />
           <BaziMeta solar={result.solarStr} lunar={result.lunarStr} />
           <BaziChart pillars={result.pillars} />
+          <DayMasterRelations />
           <ShishenProportion pillars={result.pillars} />
           <SkillIndex pillars={result.pillars} />
         </section>

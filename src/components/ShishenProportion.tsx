@@ -1,24 +1,9 @@
 import type { Pillar } from '@/lib/store'
+import { WUXING_BG_STRONG, WUXING_TEXT, shishenWuxing } from '@/lib/wuxing'
 import { SkillLink } from '@@/SkillLink'
 
 const GAN_WEIGHT = 1.0
 const HIDDEN_WEIGHTS = [0.6, 0.3, 0.1]
-
-const CAT: Record<string, string> = {
-  比肩: '比劫', 劫财: '比劫',
-  食神: '食伤', 伤官: '食伤',
-  偏财: '财', 正财: '财',
-  七杀: '官杀', 正官: '官杀',
-  偏印: '印', 正印: '印',
-}
-
-const CAT_COLOR: Record<string, string> = {
-  比劫: 'bg-slate-500 dark:bg-slate-400',
-  食伤: 'bg-emerald-500 dark:bg-emerald-400',
-  财: 'bg-amber-500 dark:bg-amber-400',
-  官杀: 'bg-rose-500 dark:bg-rose-400',
-  印: 'bg-sky-500 dark:bg-sky-400',
-}
 
 interface Entry {
   name: string
@@ -27,14 +12,24 @@ interface Entry {
   pct: number
   inGan: boolean
   ganFirstPos: number
+  wuxing: string
 }
 
 function compute(pillars: Pillar[]): Entry[] {
+  const dayGan = pillars[2]?.gan ?? ''
   const map = new Map<string, Entry>()
   const ensure = (name: string): Entry => {
     let e = map.get(name)
     if (!e) {
-      e = { name, count: 0, weight: 0, pct: 0, inGan: false, ganFirstPos: Infinity }
+      e = {
+        name,
+        count: 0,
+        weight: 0,
+        pct: 0,
+        inGan: false,
+        ganFirstPos: Infinity,
+        wuxing: shishenWuxing(dayGan, name),
+      }
       map.set(name, e)
     }
     return e
@@ -79,14 +74,9 @@ export function ShishenProportion({ pillars }: { pillars: Pillar[] }) {
         <h2 className="text-xs font-medium tracking-[0.25em] uppercase text-slate-500 dark:text-slate-400">
           十神占比
         </h2>
-        {/* <span className="text-[11px] text-slate-400 dark:text-slate-500">
-          天干 1.0 · 主气 0.6 · 中气 0.3 · 余气 0.1
-        </span> */}
       </div>
 
-      {inGan.length > 0 && (
-        <Group title="透干" entries={inGan} />
-      )}
+      {inGan.length > 0 && <Group title="透干" entries={inGan} />}
       {hiddenOnly.length > 0 && (
         <Group title="仅藏干" entries={hiddenOnly} dimmed className={inGan.length ? 'mt-5' : ''} />
       )}
@@ -118,15 +108,16 @@ function Group({
 }
 
 function ProportionBar({ entry, dimmed }: { entry: Entry; dimmed?: boolean }) {
-  const color = CAT_COLOR[CAT[entry.name] ?? ''] ?? 'bg-slate-400'
+  const barColor = WUXING_BG_STRONG[entry.wuxing] ?? 'bg-slate-400'
+  const textColor = WUXING_TEXT[entry.wuxing] ?? ''
   return (
     <div className="flex items-center gap-2 md:gap-3">
-      <div className="w-10 md:w-14 shrink-0 text-sm font-medium text-slate-800 dark:text-slate-200">
+      <div className={`w-10 md:w-14 shrink-0 text-sm font-medium ${textColor}`}>
         <SkillLink category="shishen" name={entry.name}>{entry.name}</SkillLink>
       </div>
       <div className="flex-1 min-w-0 relative h-4 md:h-5 rounded bg-slate-100 dark:bg-slate-800 overflow-hidden">
         <div
-          className={`absolute inset-y-0 left-0 ${color} ${dimmed ? 'opacity-70' : ''} transition-all`}
+          className={`absolute inset-y-0 left-0 ${barColor} ${dimmed ? 'opacity-70' : ''} transition-all`}
           style={{ width: `${entry.pct}%` }}
         />
       </div>

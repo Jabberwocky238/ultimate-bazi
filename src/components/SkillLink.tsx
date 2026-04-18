@@ -23,7 +23,7 @@ export function SkillLink({ category, name, subtitle, children, className }: Pro
       type="button"
       onClick={() => setFocused({ category, name, subtitle })}
       className={[
-        'text-inherit cursor-pointer rounded transition-[box-shadow,filter] duration-150',
+        'cursor-pointer rounded transition-[box-shadow,filter] duration-150',
         'hover:shadow-[0_0_14px_-1px_currentColor] hover:drop-shadow-[0_0_3px_currentColor]',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600/40',
         active ? 'shadow-[0_0_14px_-1px_currentColor] drop-shadow-[0_0_3px_currentColor]' : '',

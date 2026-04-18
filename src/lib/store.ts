@@ -9,7 +9,7 @@ import {
   type Sex,
 } from '@jabberwocky238/bazi-engine'
 import type { SkillCategory } from './skills'
-import { ganWuxing, zhiWuxing } from './wuxing'
+import { ganWuxing, zhiWuxing, shishenWuxing } from './wuxing'
 
 export interface Pillar {
   label: string
@@ -22,7 +22,9 @@ export interface Pillar {
   nayin: string
   hideGans: string[]
   shishen: string
+  shishenWuxing: string
   hideShishen: string[]
+  hideShishenWuxings: string[]
   shensha: string[]
 }
 
@@ -92,24 +94,31 @@ function compute(year: number, month: number, day: number, hour: number, sex: Se
   ] as const
 
   const ssKey = ['year', 'month', 'day', 'hour'] as const
+  const dayGan = input.day.gan
 
   return {
     solarStr: solar.toYmdHms(),
     lunarStr: lunar.toString(),
-    pillars: base.map((p, i) => ({
-      label: p.label,
-      gz: p.gz,
-      gan: p.gan,
-      zhi: p.zhi,
-      ganWuxing: ganWuxing(p.gan),
-      zhiWuxing: zhiWuxing(p.zhi),
-      wuxing: p.wuxing,
-      nayin: p.nayin,
-      hideGans: [...p.hide],
-      shishen: shishen.十神[i],
-      hideShishen: shishen.藏干十神[i],
-      shensha: shensha[ssKey[i]],
-    })),
+    pillars: base.map((p, i) => {
+      const ss = shishen.十神[i]
+      const hideSs = shishen.藏干十神[i]
+      return {
+        label: p.label,
+        gz: p.gz,
+        gan: p.gan,
+        zhi: p.zhi,
+        ganWuxing: ganWuxing(p.gan),
+        zhiWuxing: zhiWuxing(p.zhi),
+        wuxing: p.wuxing,
+        nayin: p.nayin,
+        hideGans: [...p.hide],
+        shishen: ss,
+        shishenWuxing: shishenWuxing(dayGan, ss),
+        hideShishen: hideSs,
+        hideShishenWuxings: hideSs.map((s) => shishenWuxing(dayGan, s)),
+        shensha: shensha[ssKey[i]],
+      }
+    }),
   }
 }
 

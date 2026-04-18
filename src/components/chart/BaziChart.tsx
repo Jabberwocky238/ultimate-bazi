@@ -25,7 +25,9 @@ export function BaziChart({ pillars }: { pillars: Pillar[] }) {
         </thead>
         <tbody>
           <Row label="十神">
-            {pillars.map((p) => <ShishenCell key={p.label} shishen={p.shishen} />)}
+            {pillars.map((p) => (
+              <ShishenCell key={p.label} shishen={p.shishen} wuxing={p.shishenWuxing} />
+            ))}
           </Row>
           <Row label="干支">
             {pillars.map((p) => (
@@ -40,7 +42,12 @@ export function BaziChart({ pillars }: { pillars: Pillar[] }) {
           </Row>
           <Row label="藏干">
             {pillars.map((p) => (
-              <CangGanCell key={p.label} gans={p.hideGans} shishens={p.hideShishen} />
+              <CangGanCell
+                key={p.label}
+                gans={p.hideGans}
+                shishens={p.hideShishen}
+                shishenWuxings={p.hideShishenWuxings}
+              />
             ))}
           </Row>
           <Row label="五行">

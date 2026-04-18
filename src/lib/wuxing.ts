@@ -22,6 +22,42 @@ export const WUXING_FROM: Record<string, string> = {
   水: 'from-water/15',
 }
 
+export const WUXING_BG_SOFT: Record<string, string> = {
+  木: 'bg-wood/10',
+  火: 'bg-fire/10',
+  土: 'bg-earth/10',
+  金: 'bg-metal/10',
+  水: 'bg-water/10',
+}
+
+export const WUXING_BG_STRONG: Record<string, string> = {
+  木: 'bg-wood',
+  火: 'bg-fire',
+  土: 'bg-earth',
+  金: 'bg-metal',
+  水: 'bg-water',
+}
+
+import { wuxingRelations, type Gan } from '@jabberwocky238/bazi-engine'
+
+const SHISHEN_TO_REL: Record<string, '同类' | '我生' | '我克' | '克我' | '生我'> = {
+  比肩: '同类', 劫财: '同类',
+  食神: '我生', 伤官: '我生',
+  偏财: '我克', 正财: '我克',
+  七杀: '克我', 正官: '克我',
+  偏印: '生我', 正印: '生我',
+}
+
+export function shishenWuxing(dayGan: string, shishen: string): string {
+  const rel = SHISHEN_TO_REL[shishen]
+  if (!rel) return ''
+  try {
+    return wuxingRelations(dayGan as Gan)[rel] ?? ''
+  } catch {
+    return ''
+  }
+}
+
 const GAN_WUXING: Record<string, string> = {
   甲: '木', 乙: '木',
   丙: '火', 丁: '火',
