@@ -10,6 +10,9 @@ import { DayMasterRelations } from '@@/DayMasterRelations'
 import { GejuPanel } from '@@/GejuPanel'
 import { DaYunPanel } from '@@/DaYunPanel'
 import { BalancePanel } from '@@/BalancePanel'
+import { StrengthPanel } from '@@/StrengthPanel'
+import { XiyongPanel } from '@@/XiyongPanel'
+import { GanZhiPanel } from '@@/GanZhiPanel'
 import { Footer } from '@@/Footer'
 
 function App() {
@@ -33,6 +36,9 @@ function App() {
           <GejuPanel pillars={result.pillars} />
           <DaYunPanel />
           <ShishenProportion pillars={result.pillars} />
+          <StrengthPanel />
+          <GanZhiPanel />
+          <XiyongPanel />
           {/* <BalancePanel /> */}
           <SkillIndex pillars={result.pillars} />
           <BasicsPanel />
