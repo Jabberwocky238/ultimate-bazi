@@ -4,7 +4,8 @@
       "Bash(bun add *)",
       "Bash(bun x *)",
       "Bash(bun remove *)",
-      "Bash(git submodule *)"
+      "Bash(git submodule *)",
+      "Bash(grep -E \"\\\\.md$\")"
     ],
     "deny": [
       "Bash(npm install *)",
