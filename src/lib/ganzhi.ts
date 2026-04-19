@@ -397,7 +397,7 @@ function detectDizhiSanhe(pillars: Pillar[]): Finding[] {
         // 拱合 = 长生 + 墓 缺中神
         const YIN_GAN: Record<string, string> = { 木: '乙', 火: '丁', 金: '辛', 水: '癸' }
         const needGan = YIN_GAN[hua]
-        const canGong = close && needGan && pillars.some((p) => p.gan === needGan)
+        const canGong = close && !!needGan && pillars.some((p) => p.gan === needGan)
         out.push({
           kind: '拱合',
           name: `${a}${c} 拱 ${b}`,
