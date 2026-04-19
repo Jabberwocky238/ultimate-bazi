@@ -91,7 +91,21 @@ const META: Record<string, { quality: GejuQuality; category: GejuCategory }> = {
   从儿格: { quality: 'good', category: '从格' },
   从官格: { quality: 'good', category: '从格' },
   从旺格: { quality: 'good', category: '从格' },
-  弃命从势: { quality: 'good', category: '从格' },
+  从强格: { quality: 'good', category: '从格' },
+  从势格: { quality: 'good', category: '从格' },
+
+  // 特殊/复合格局
+  三奇格: { quality: 'good', category: '特殊格' },
+  三庚格: { quality: 'good', category: '特殊格' },
+  两气成象: { quality: 'good', category: '特殊格' },
+  五行齐全: { quality: 'good', category: '特殊格' },
+  化气格: { quality: 'good', category: '特殊格' },
+  天元一气: { quality: 'good', category: '特殊格' },
+  帝王命造: { quality: 'good', category: '特殊格' },
+  日德格: { quality: 'good', category: '特殊格' },
+  日贵格: { quality: 'good', category: '特殊格' },
+  身杀两停: { quality: 'neutral', category: '特殊格' },
+  劫财见财: { quality: 'bad', category: '十神格' },
 
   // 五行格 (吉)
   木火通明: { quality: 'good', category: '五行格' },
@@ -1178,17 +1192,17 @@ export function isCongWangGe(ctx: Ctx): GejuDraft | null {
 }
 
 /**
- * 弃命从势：日主无任何比劫/印根 + 食伤、财、官杀中至少两类并强透干。
+ * 从势格 (原弃命从势)：日主无任何比劫/印根 + 食伤、财、官杀中至少两类并强透干。
  * 《滴天髓·从象》任铁樵注："日主孤立无根，四柱财官食伤势均力敌"。
  */
-export function isQiMingCongShi(ctx: Ctx): GejuDraft | null {
+export function isCongShiGe(ctx: Ctx): GejuDraft | null {
   if (ctx.countCat('比劫') > 0) return null
   if (ctx.countCat('印') > 0) return null
   const strongCats = (['食伤', '财', '官杀'] as ShishenCat[]).filter(
     (c) => ctx.touCat(c) && ctx.countCat(c) >= 2,
   )
   if (strongCats.length < 2) return null
-  return { name: '弃命从势', note: `无根 + ${strongCats.join(' ')} 并强` }
+  return { name: '从势格', note: `无根 + ${strongCats.join(' ')} 并强` }
 }
 
 // ——————————————————————— 主入口 ———————————————————————
@@ -1253,7 +1267,7 @@ export const DETECTORS: Record<string, (ctx: Ctx) => GejuDraft | null> = {
   从儿格: isCongErGe,
   从官格: isCongGuanGe,
   从旺格: isCongWangGe,
-  弃命从势: isQiMingCongShi,
+  从势格: isCongShiGe,
 }
 
 function enrich(d: GejuDraft): GejuHit {
