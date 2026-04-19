@@ -14,43 +14,46 @@ import { StrengthPanel } from '@@/StrengthPanel'
 import { XiyongPanel } from '@@/XiyongPanel'
 import { GanZhiPanel } from '@@/GanZhiPanel'
 import { Footer } from '@@/Footer'
+import { ErrorBoundary } from '@@/ErrorBoundary'
 
 function App() {
   const result = useBaziStore((s) => s.result)
 
   return (
-    <main className="mx-auto max-w-7xl px-3 md:px-6 pt-5 md:pt-10 pb-10 md:pb-16">
-      <header className="mb-5 md:mb-6">
-        <h1 className="text-2xl md:text-4xl font-bold tracking-tight">八字排盘</h1>
-        <p className="mt-1 text-xs md:text-sm text-slate-500 dark:text-slate-400">
-          公历出生时间 → 四柱、十神、神煞 · 点击任意词条查看释义
-        </p>
-      </header>
+    <ErrorBoundary name="App">
+      <main className="mx-auto max-w-7xl px-3 md:px-6 pt-5 md:pt-10 pb-10 md:pb-16">
+        <header className="mb-5 md:mb-6">
+          <h1 className="text-2xl md:text-4xl font-bold tracking-tight">八字排盘</h1>
+          <p className="mt-1 text-xs md:text-sm text-slate-500 dark:text-slate-400">
+            公历出生时间 → 四柱、十神、神煞 · 点击任意词条查看释义
+          </p>
+        </header>
 
-      <div className="grid gap-5 md:gap-6 md:grid-cols-[minmax(0,6fr)_minmax(0,4fr)]">
-        <section className="min-w-0">
-          <BaziForm />
-          <BaziMeta solar={result.solarStr} lunar={result.lunarStr} />
-          <BaziChart pillars={result.pillars} />
-          <DayMasterRelations />
-          <GejuPanel pillars={result.pillars} />
-          <DaYunPanel />
-          <ShishenProportion pillars={result.pillars} />
-          <StrengthPanel />
-          <GanZhiPanel />
-          <XiyongPanel />
-          {/* <BalancePanel /> */}
-          <SkillIndex pillars={result.pillars} />
-          <BasicsPanel />
-        </section>
+        <div className="grid gap-5 md:gap-6 md:grid-cols-[minmax(0,6fr)_minmax(0,4fr)]">
+          <section className="min-w-0">
+            <ErrorBoundary name="BaziForm"><BaziForm /></ErrorBoundary>
+            <ErrorBoundary name="BaziMeta"><BaziMeta solar={result.solarStr} lunar={result.lunarStr} /></ErrorBoundary>
+            <ErrorBoundary name="BaziChart"><BaziChart pillars={result.pillars} /></ErrorBoundary>
+            <ErrorBoundary name="DayMasterRelations"><DayMasterRelations /></ErrorBoundary>
+            <ErrorBoundary name="GejuPanel"><GejuPanel pillars={result.pillars} /></ErrorBoundary>
+            <ErrorBoundary name="DaYunPanel"><DaYunPanel /></ErrorBoundary>
+            <ErrorBoundary name="ShishenProportion"><ShishenProportion pillars={result.pillars} /></ErrorBoundary>
+            <ErrorBoundary name="StrengthPanel"><StrengthPanel /></ErrorBoundary>
+            <ErrorBoundary name="GanZhiPanel"><GanZhiPanel /></ErrorBoundary>
+            <ErrorBoundary name="XiyongPanel"><XiyongPanel /></ErrorBoundary>
+            {/* <BalancePanel /> */}
+            <ErrorBoundary name="SkillIndex"><SkillIndex pillars={result.pillars} /></ErrorBoundary>
+            <ErrorBoundary name="BasicsPanel"><BasicsPanel /></ErrorBoundary>
+          </section>
 
-        <section className="min-w-0">
-          <SkillPanel />
-        </section>
-      </div>
+          <section className="min-w-0">
+            <ErrorBoundary name="SkillPanel"><SkillPanel /></ErrorBoundary>
+          </section>
+        </div>
 
-      <Footer />
-    </main>
+        <ErrorBoundary name="Footer"><Footer /></ErrorBoundary>
+      </main>
+    </ErrorBoundary>
   )
 }
 
