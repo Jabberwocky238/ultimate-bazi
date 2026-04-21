@@ -19,12 +19,16 @@ export function checkZhuanWang(
   if (!ctx.deLing) return null
   const selfWx = ctx.dayWx
   const yinWx = WX_GENERATED_BY[selfWx] as WuXing
-  const supportZhi = ctx.zhiMainWxCount(selfWx) + ctx.zhiMainWxCount(yinWx)
+  // 本气 + 中气都算支持位 (放宽)
+  const supportZhi =
+    ctx.zhiMainWxCount(selfWx) + ctx.zhiMainWxCount(yinWx) +
+    (ctx.rootExt(selfWx as WuXing) ? 1 : 0) +
+    (ctx.rootExt(yinWx) ? 1 : 0)
   if (supportZhi < 3) return null
   if (ctx.touCat('官杀')) return null
   if (ctx.ganWxCount(targetWx as WuXing) < 2) return null
-  // md 条件 5: 食伤重泄破
-  if (ctx.countCat('食伤') >= 3) return null
+  // md 条件 5: 食伤重泄破 (放宽到 4)
+  if (ctx.countCat('食伤') >= 4) return null
   const caiTouN =
     (ctx.tou('正财') ? 1 : 0) + (ctx.tou('偏财') ? 1 : 0)
   if (caiTouN > maxCaiTou) return null

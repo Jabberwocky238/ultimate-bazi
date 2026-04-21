@@ -84,11 +84,23 @@ export interface CtxPillars {
   liunian?: Pillar
 }
 
+/** 大运序列相对命局的配合度元信息；由 detectGeju 调用方预计算后注入。 */
+export interface DaYunMeta {
+  /** 大运顺行：阳男阴女顺，阴男阳女逆。 */
+  forward: boolean
+  /** 从当前选中大运起连续落入用神/喜神五行的大运步数 (含当前步)。 */
+  favorableStreak: number
+  /** 从当前选中大运起连续落入忌神五行的大运步数 (含当前步)。 */
+  avoidStreak: number
+}
+
 export class Ctx {
   pillars: CtxPillars
   season: Season | ''
   /** 日主阳干 (甲/丙/戊/庚/壬) */
   dayYang: boolean
+  /** 大运序列配合度，detectGeju 调用方按需注入。 */
+  daYunMeta: DaYunMeta | null = null
 
   private _strength: StrengthAnalysis | null | undefined
 

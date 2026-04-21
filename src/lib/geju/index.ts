@@ -1,8 +1,9 @@
 import type { Pillar } from '../store'
 import type { GejuHit, Detector, GejuQuality, GejuCategory } from './types'
-import { Ctx } from './ctx'
+import { Ctx, type DaYunMeta } from './ctx'
 
 export type { GejuQuality, GejuCategory, GejuHit } from './types'
+export type { DaYunMeta } from './ctx'
 export { Ctx } from './ctx'
 
 import * as zhengge from './categories/zhengge'
@@ -107,7 +108,7 @@ export type GejuOutput = GejuHit & { quality: GejuQuality, category: GejuCategor
 
 export function detectGeju(
   pillars: Pillar[],
-  extras: { dayun?: Pillar; liunian?: Pillar } = {},
+  extras: { dayun?: Pillar; liunian?: Pillar; daYunMeta?: DaYunMeta } = {},
 ): GejuOutput[] {
   if (pillars.length !== 4) return []
   const [year, month, day, hour] = pillars
@@ -116,6 +117,7 @@ export function detectGeju(
     dayun: extras.dayun,
     liunian: extras.liunian,
   })
+  if (extras.daYunMeta) ctx.daYunMeta = extras.daYunMeta
   const hits: GejuOutput[] = []
   for (const [detect, quality, category] of Object.values(DETECTORS)) {
     const h = detect(ctx)

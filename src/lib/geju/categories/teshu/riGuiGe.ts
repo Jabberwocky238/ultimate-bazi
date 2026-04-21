@@ -26,6 +26,8 @@ export function isRiGuiGe(ctx: Ctx): GejuHit | null {
   // md 条件 5: 贵人日支不被局内冲
   const dzChong = CHONG_PAIR[ctx.dayZhi as string]
   if (dzChong && otherZhis.includes(dzChong)) return null
+  // md 条件 2 (收紧: 改必要): 官星必须**透干** (不能只藏)
+  if (!ctx.touCat('官杀')) return null
   // md 条件 5 副: 贵人带合（加固，不破格）
   const heZhi = HE_OF_RIGUI[ctx.dayZhi as string]
   const hasHe = heZhi && otherZhis.includes(heZhi)
