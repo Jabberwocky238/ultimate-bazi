@@ -31,67 +31,71 @@ function randomBazi(): Bazi {
 
 const N = 10000
 
-test(`随机 ${N} 盘格局分布`, () => {
-  // name → category 映射
-  const nameToCategory: Record<string, GejuCategory> = {}
-  for (const [name, [, , cat]] of Object.entries(DETECTORS)) {
-    nameToCategory[name] = cat
+// name → category 映射
+const nameToCategory: Record<string, GejuCategory> = {}
+for (const [name, [, , cat]] of Object.entries(DETECTORS)) {
+  nameToCategory[name] = cat
+}
+
+const hitCount: Record<string, number> = {}
+const categoryCount: Record<string, number> = {}
+let totalHits = 0
+let errored = 0
+
+for (let i = 0; i < N; i++) {
+  const sex: Sex = Math.random() < 0.5 ? 0 : 1
+  const bazi = randomBazi()
+  try {
+    const pillars = baziToPillars(bazi, sex)
+    const hits = detectGeju(pillars)
+    for (const h of hits) {
+      hitCount[h.name] = (hitCount[h.name] ?? 0) + 1
+      const cat = nameToCategory[h.name] ?? '未知'
+      categoryCount[cat] = (categoryCount[cat] ?? 0) + 1
+      totalHits++
+    }
+  } catch {
+    errored++
   }
+}
 
-  const hitCount: Record<string, number> = {}
-  const categoryCount: Record<string, number> = {}
-  let totalHits = 0
-  let errored = 0
+// —— 输出 ——
+console.log(`\n============================================`)
+console.log(`  随机 ${N} 盘格局分布 (错误 ${errored} 盘)`)
+console.log(`  总命中次数 ${totalHits} · 平均每盘 ${(totalHits / N).toFixed(2)} 个`)
+console.log(`============================================`)
 
-  for (let i = 0; i < N; i++) {
-    const sex: Sex = Math.random() < 0.5 ? 0 : 1
-    const bazi = randomBazi()
-    try {
-      const pillars = baziToPillars(bazi, sex)
-      const hits = detectGeju(pillars)
-      for (const h of hits) {
-        hitCount[h.name] = (hitCount[h.name] ?? 0) + 1
-        const cat = nameToCategory[h.name] ?? '未知'
-        categoryCount[cat] = (categoryCount[cat] ?? 0) + 1
-        totalHits++
-      }
-    } catch {
-      errored++
+// 按命中次数降序
+const sorted = Object.entries(hitCount).sort((a, b) => b[1] - a[1])
+
+console.log(`\n【单格局命中 (从多到少)】`)
+console.log('  ' + '格局'.padEnd(10) + ' '.repeat(2) + '次数'.padStart(4) + '  命中率   类别内占比   类别')
+for (const [name, n] of sorted) {
+  const cat = nameToCategory[name] ?? '未知'
+  const catTotal = categoryCount[cat] ?? 1
+  const pct = ((n / N) * 100).toFixed(1)
+  const catPct = ((n / catTotal) * 100).toFixed(1)
+  console.log(
+    `  ${name.padEnd(10)}  ${String(n).padStart(4)}   ${pct.padStart(5)}%      ${catPct.padStart(5)}%   ${cat}`,
+  )
+}
+
+console.log(`\n【类别命中分布 (从多到少)】`)
+const catSorted = Object.entries(categoryCount).sort((a, b) => b[1] - a[1])
+for (const [cat, n] of catSorted) {
+  const pct = ((n / totalHits) * 100).toFixed(1)
+  console.log(`  ${cat.padEnd(6)}  ${String(n).padStart(5)} 次   占总命中 ${pct.padStart(5)}%`)
+  for (const [name, count] of sorted) {
+    if (nameToCategory[name] === cat) {
+      const pct = ((count / n) * 100).toFixed(1)
+      console.log(`    ${name.padEnd(10)} ${String(count).padStart(5)} 次   占类别 ${pct.padStart(5)}%`)
     }
   }
+}
 
-  // —— 输出 ——
-  console.log(`\n============================================`)
-  console.log(`  随机 ${N} 盘格局分布 (错误 ${errored} 盘)`)
-  console.log(`  总命中次数 ${totalHits} · 平均每盘 ${(totalHits / N).toFixed(2)} 个`)
-  console.log(`============================================`)
-
-  // 按命中次数降序
-  const sorted = Object.entries(hitCount).sort((a, b) => b[1] - a[1])
-
-  console.log(`\n【单格局命中 (从多到少)】`)
-  console.log('  ' + '格局'.padEnd(10) + ' '.repeat(2) + '次数'.padStart(4) + '  命中率   类别内占比   类别')
-  for (const [name, n] of sorted) {
-    const cat = nameToCategory[name] ?? '未知'
-    const catTotal = categoryCount[cat] ?? 1
-    const pct = ((n / N) * 100).toFixed(1)
-    const catPct = ((n / catTotal) * 100).toFixed(1)
-    console.log(
-      `  ${name.padEnd(10)}  ${String(n).padStart(4)}   ${pct.padStart(5)}%      ${catPct.padStart(5)}%   ${cat}`,
-    )
-  }
-
-  console.log(`\n【类别命中分布 (从多到少)】`)
-  const catSorted = Object.entries(categoryCount).sort((a, b) => b[1] - a[1])
-  for (const [cat, n] of catSorted) {
-    const pct = ((n / totalHits) * 100).toFixed(1)
-    console.log(`  ${cat.padEnd(6)}  ${String(n).padStart(5)} 次   占总命中 ${pct.padStart(5)}%`)
-  }
-
-  // 列出未命中的格局
-  const unused = Object.keys(DETECTORS).filter((n) => !(n in hitCount))
-  if (unused.length > 0) {
-    console.log(`\n【未命中格局 (${unused.length})】`)
-    console.log(`  ${unused.join(', ')}`)
-  }
-})
+// 列出未命中的格局
+const unused = Object.keys(DETECTORS).filter((n) => !(n in hitCount))
+if (unused.length > 0) {
+  console.log(`\n【未命中格局 (${unused.length})】`)
+  console.log(`  ${unused.join(', ')}`)
+}

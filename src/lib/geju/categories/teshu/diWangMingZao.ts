@@ -34,7 +34,7 @@ export function isDiWangMingZao(ctx: Ctx): GejuHit | null {
     name: '帝王命造',
     note: `格局清纯 · 流通或专旺 · 日主立得住${noteTail}`,
     suiyunSpecific: true,
-    suiyunDefaultTrigger: true,
+    // suiyunDefaultTrigger: true,
     ...(strongFit ? { suiyunTrigger: true } : {}),
     ...(badFit ? { suiyunConquer: true } : {}),
   }

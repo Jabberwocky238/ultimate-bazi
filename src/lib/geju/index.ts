@@ -28,8 +28,7 @@ export const DETECTORS: Record<string, [Detector, GejuQuality, GejuCategory]> = 
   偏财格: [zhengge.isPianCaiGe, 'good', '正格'],
   正印格: [zhengge.isZhengYinGe, 'good', '正格'],
   偏印格: [zhengge.isPianYinGe, 'good', '正格'],
-  魁罡格: [zhengge.isKuiGangGe, 'good', '正格'],
-  壬骑龙背: [zhengge.isRenQiLongBei, 'good', '特殊格'],
+  
   // 官杀
   官杀混杂: [guansha.isGuanShaHunZa, 'bad', '十神格'],
   官印相生: [guansha.isGuanYinXiangSheng, 'good', '十神格'],
@@ -44,6 +43,7 @@ export const DETECTORS: Record<string, [Detector, GejuQuality, GejuCategory]> = 
   伤官佩印: [shishang.isShangGuanPeiYin, 'good', '十神格'],
   食伤混杂: [shishang.isShiShangHunZa, 'bad', '十神格'],
   食伤泄秀: [shishang.isShiShangXieXiu, 'good', '十神格'],
+  劫财见财: [teshu.isJieCaiJianCai, 'bad', '十神格'],
   // 羊刃
   羊刃驾杀: [yangren.isYangRenJiaSha, 'neutral', '特殊格'],
   羊刃劫财: [yangren.isYangRenJieCai, 'neutral', '特殊格'],
@@ -91,17 +91,16 @@ export const DETECTORS: Record<string, [Detector, GejuQuality, GejuCategory]> = 
   // 从旺格: [congge.isCongWangGe, 'good', '从格'],
   // 从强格: [congge.isCongQiangGe, 'good', '从格'],
   // 特殊格
+  魁罡格: [zhengge.isKuiGangGe, 'good', '特殊格'],
   三奇格: [teshu.isSanQiGe, 'good', '特殊格'],
   三庚格: [teshu.isSanGengGe, 'good', '特殊格'],
-  两气成象: [teshu.isLiangQiChengXiang, 'neutral', '特殊格'],
-  // 五行齐全: [teshu.isWuXingQiQuan, 'neutral', '特殊格'],  // 无 md 文档
   化气格: [teshu.isHuaQiGe, 'good', '特殊格'],
   天元一气: [teshu.isTianYuanYiQi, 'good', '特殊格'],
   日德格: [teshu.isRiDeGe, 'good', '特殊格'],
   日贵格: [teshu.isRiGuiGe, 'good', '特殊格'],
   身杀两停: [teshu.isShenShaLiangTing, 'neutral', '特殊格'],
-  劫财见财: [teshu.isJieCaiJianCai, 'bad', '十神格'],
   帝王命造: [teshu.isDiWangMingZao, 'good', '特殊格'],
+  壬骑龙背: [zhengge.isRenQiLongBei, 'good', '特殊格'],
 }
 
 export type GejuOutput = GejuHit & { quality: GejuQuality, category: GejuCategory }
