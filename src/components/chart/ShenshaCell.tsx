@@ -1,5 +1,29 @@
 import { SkillLink } from '@@/SkillLink'
-import { shenshaQuality, type ShenshaQuality } from '@/lib/wuxing'
+
+type ShenshaQuality = 'good' | 'bad'
+
+/** 明确凶神 —— 只留真正伤灾/破格类（精简）。*/
+const BAD_SHENSHA = new Set<string>([
+  // 刃类 (真伤)
+  '羊刃', '飞刃', '血刃',
+  // 硬凶
+  '白虎', '十恶大败', '童子煞', '勾绞煞',
+  '亡神', '灾煞',
+  // 丧葬 (硬凶)
+  '丧门', '吊客',
+  // 婚姻硬破
+  '孤鸾煞',
+])
+
+/**
+ * 神煞吉凶二分类：
+ *  - 凶 (红)：刃/煞/丧葬/破格
+ *  - 吉 (黄)：其他（原"中性"与"吉"合并）—— 贵人、驿马、桃花、魁罡、华盖等皆归此类
+ */
+function shenshaQuality(name: string): ShenshaQuality {
+  if (BAD_SHENSHA.has(name)) return 'bad'
+  return 'good'
+}
 
 const CHIP_CLS: Record<ShenshaQuality, string> = {
   good: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/40',

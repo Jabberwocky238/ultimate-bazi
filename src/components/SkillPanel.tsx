@@ -3,7 +3,7 @@ import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useBaziStore, type SkillFocus } from '@/lib/store'
 import { loadSkill, skillUrl } from '@/lib/skills'
-import { useMediaQuery } from '@/lib/hooks'
+import { useMediaQuery } from '@@/hooks/useMediaQuery'
 
 const CATEGORY_LABEL: Record<string, string> = {
   shishen: '十神',

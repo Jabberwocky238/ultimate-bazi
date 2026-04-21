@@ -1,5 +1,5 @@
 import type { Pillar } from '@/lib/store'
-import { cellBase } from '@/lib/ui'
+import { cellBase } from '@@/css'
 import { Row } from './Row'
 import { ShishenCell } from './ShishenCell'
 import { GanZhiCell } from './GanZhiCell'

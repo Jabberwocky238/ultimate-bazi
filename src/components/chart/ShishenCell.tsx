@@ -1,4 +1,4 @@
-import { cellBase } from '@/lib/ui'
+import { cellBase } from '@@/css'
 import { WUXING_TEXT } from '@/lib/wuxing'
 import { SkillLink } from '@@/SkillLink'
 

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { thBase } from '@/lib/ui'
+import { thBase } from '@@/css'
 
 export function Row({
   label,

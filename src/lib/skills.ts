@@ -77,6 +77,7 @@ const PATHS: Record<SkillCategory, Record<string, string>> = {
     天德合: '神煞/天德合.md',
     月德合: '神煞/月德合.md',
     魁罡日: '神煞/魁罡.md',
+    空亡: '神煞/空亡.md',
   },
   tiangan: {
     甲: '天干/甲木.md',
