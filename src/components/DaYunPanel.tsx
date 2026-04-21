@@ -6,15 +6,19 @@ import {
   type Gan,
   type Zhi,
 } from '@jabberwocky238/bazi-engine'
-import { useBaziStore, HOUR_UNKNOWN, type ExtraPillar } from '@/lib/store'
 import {
+  useBaziStore,
+  type ExtraPillar,
+  useBazi,
+  HOUR_UNKNOWN,
+  useShiShen,
   WUXING_TEXT,
   WUXING_BORDER,
   WUXING_FROM,
   ganWuxing,
   zhiWuxing,
   shishenWuxing,
-} from '@/lib/wuxing'
+} from '@/lib'
 
 interface GzCell {
   gan: string
@@ -77,13 +81,13 @@ interface LiuNianEntry {
 }
 
 export function DaYunPanel() {
-  const year = useBaziStore((s) => s.year)
-  const month = useBaziStore((s) => s.month)
-  const day = useBaziStore((s) => s.day)
-  const hour = useBaziStore((s) => s.hour)
-  const minute = useBaziStore((s) => s.minute)
-  const sex = useBaziStore((s) => s.sex)
-  const dayGan = useBaziStore((s) => s.result.pillars[2]?.gan ?? '')
+  const year = useBazi((s) => s.year)
+  const month = useBazi((s) => s.month)
+  const day = useBazi((s) => s.day)
+  const hour = useBazi((s) => s.hour)
+  const minute = useBazi((s) => s.minute)
+  const sex = useBazi((s) => s.sex)
+  const dayGan = useShiShen((s) => s.result.pillars[2]?.gan ?? '')
   const extras = useBaziStore((s) => s.extraPillars)
   const setExtras = useBaziStore((s) => s.setExtraPillars)
 

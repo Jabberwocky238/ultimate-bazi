@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { useBaziStore } from '@/lib/store'
-import { analyzeGanZhi, type Finding, type FindingKind } from '@/lib/ganzhi'
+import { useShiShen, analyzeGanZhi, type Finding, type FindingKind } from '@/lib'
 import { SkillLink } from '@@/SkillLink'
 
 const SECTION_LABEL = 'text-[11px] tracking-[0.2em] font-medium text-slate-500 dark:text-slate-400 uppercase'
@@ -27,7 +26,7 @@ const KIND_TONE: Record<FindingKind, string> = {
 }
 
 export function GanZhiPanel() {
-  const pillars = useBaziStore((s) => s.result.pillars)
+  const pillars = useShiShen((s) => s.result.pillars)
   const [open, setOpen] = useState(true)
   const a = analyzeGanZhi(pillars)
   if (!a) return null

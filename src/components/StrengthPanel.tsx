@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { useBaziStore } from '@/lib/store'
-import { analyzeStrength, type StrengthLevel } from '@/lib/strength'
-import { WUXING_TEXT, WUXING_BG_SOFT, WUXING_BORDER } from '@/lib/wuxing'
+import { useShiShen, analyzeStrength, type StrengthLevel, WUXING_TEXT, WUXING_BG_SOFT, WUXING_BORDER } from '@/lib'
 import { SkillLink } from '@@/SkillLink'
 
 const LEVEL_COLOR: Record<StrengthLevel, string> = {
@@ -23,7 +21,7 @@ function ptClass(n: number) { return n > 0 ? POINT_POS : n < 0 ? POINT_NEG : 'te
 function signed(n: number) { return n > 0 ? `+${n}` : `${n}` }
 
 export function StrengthPanel() {
-  const pillars = useBaziStore((s) => s.result.pillars)
+  const pillars = useShiShen((s) => s.result.pillars)
   const [open, setOpen] = useState(true)
   const a = analyzeStrength(pillars)
   if (!a) return null

@@ -59,6 +59,7 @@ export const META: Record<string, { quality: GejuQuality; category: GejuCategory
   食神制杀: { quality: 'good', category: '十神格' },
   伤官合杀: { quality: 'good', category: '十神格' },
   伤官生财: { quality: 'good', category: '十神格' },
+  食神生财: { quality: 'good', category: '十神格' },
   伤官佩印: { quality: 'good', category: '十神格' },
   食伤泄秀: { quality: 'good', category: '十神格' },
 

@@ -1,5 +1,4 @@
-import { useBaziStore, type Pillar, type ExtraPillar } from '@/lib/store'
-import { WUXING_BG_STRONG, WUXING_TEXT, shishenWuxing } from '@/lib/wuxing'
+import { useBaziStore, type Pillar, type ExtraPillar, WUXING_BG_STRONG, WUXING_TEXT, shishenWuxing } from '@/lib'
 import { SkillLink } from '@@/SkillLink'
 
 const GAN_WEIGHT = 1.0

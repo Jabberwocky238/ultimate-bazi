@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import type { Pillar } from '@/lib/store'
-import { detectGeju, type GejuQuality, type GejuCategory } from '@/lib/geju'
-import { skillNames } from '@/lib/skills'
+import { type Pillar, detectGeju, type GejuQuality, type GejuCategory, skillNames } from '@/lib'
 import { SkillLink } from '@@/SkillLink'
 
 /** 边框 + 底色 + 发光色：表示吉凶。`--glow-color` 覆盖 SkillLink 的 hover 圆边光 */

@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { useBaziStore, type Pillar } from '@/lib/store'
-import { WUXING_TEXT, WUXING_BG_SOFT, WUXING_BORDER, ganWuxing } from '@/lib/wuxing'
+import { type Pillar, useShiShen, WUXING_TEXT, WUXING_BG_SOFT, WUXING_BORDER, ganWuxing } from '@/lib'
 import { SkillLink } from '@@/SkillLink'
 import { wuxingRelations, isYangGan, type Gan } from '@jabberwocky238/bazi-engine'
 
@@ -167,7 +166,7 @@ function levelColor(level: Analysis['level']): string {
 }
 
 export function BalancePanel() {
-  const pillars = useBaziStore((s) => s.result.pillars)
+  const pillars = useShiShen((s) => s.result.pillars)
   const [open, setOpen] = useState(true)
   const a = analyze(pillars)
   if (!a) return null

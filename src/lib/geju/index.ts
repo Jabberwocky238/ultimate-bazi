@@ -11,7 +11,7 @@ import * as yangren from './categories/yangren'
 import * as zongliang from './categories/zongliang'
 import * as wuxing from './categories/wuxing'
 import * as zhuanwang from './categories/zhuanwang'
-import * as conge from './categories/conge'
+import * as conge from './categories/从格'
 import * as teshu from './categories/teshu'
 
 export const DETECTORS: Record<string, Detector> = {
@@ -38,6 +38,7 @@ export const DETECTORS: Record<string, Detector> = {
   伤官见官: shishang.isShangGuanJianGuan,
   伤官合杀: shishang.isShangGuanHeSha,
   伤官生财: shishang.isShangGuanShengCai,
+  食神生财: shishang.isShiShenShengCai,
   伤官佩印: shishang.isShangGuanPeiYin,
   食伤混杂: shishang.isShiShangHunZa,
   食伤泄秀: shishang.isShiShangXieXiu,

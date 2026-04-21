@@ -1,4 +1,4 @@
-import { skillNames } from '@/lib/skills'
+import { skillNames } from '@/lib'
 import { SkillLink } from '@@/SkillLink'
 
 export function BasicsPanel() {

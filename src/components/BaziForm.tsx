@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useBaziStore, HOUR_UNKNOWN } from '@/lib/store'
+import { useBazi, HOUR_UNKNOWN } from '@/lib'
 import { inputCls, labelCls, primaryBtn } from '@@/css'
 import { SaveLoadControls } from '@@/SaveLoadControls'
 
@@ -13,14 +13,14 @@ function isValidDate(y: number, m: number, d: number): boolean {
 }
 
 export function BaziForm() {
-  const year = useBaziStore((s) => s.year)
-  const month = useBaziStore((s) => s.month)
-  const day = useBaziStore((s) => s.day)
-  const hour = useBaziStore((s) => s.hour)
-  const minute = useBaziStore((s) => s.minute)
-  const sex = useBaziStore((s) => s.sex)
-  const setDate = useBaziStore((s) => s.setDate)
-  const syncToUrl = useBaziStore((s) => s.syncToUrl)
+  const year = useBazi((s) => s.year)
+  const month = useBazi((s) => s.month)
+  const day = useBazi((s) => s.day)
+  const hour = useBazi((s) => s.hour)
+  const minute = useBazi((s) => s.minute)
+  const sex = useBazi((s) => s.sex)
+  const setDate = useBazi((s) => s.setDate)
+  const syncToUrl = useBazi((s) => s.syncToUrl)
 
   const [hourUnknown, setHourUnknown] = useState(hour === HOUR_UNKNOWN)
 

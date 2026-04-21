@@ -1,4 +1,4 @@
-import { WUXING_TEXT, ganWuxing } from '@/lib/wuxing'
+import { WUXING_TEXT, ganWuxing } from '@/lib'
 import { SkillLink } from '@@/SkillLink'
 
 export function CangGanCell({

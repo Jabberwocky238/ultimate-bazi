@@ -57,6 +57,28 @@ export function isShangGuanHeSha(ctx: Ctx): GejuDraft | null {
 }
 
 /**
+ * 食神生财（依《子平真诠·论食神》6 条）：
+ *  1. 食神透干通根
+ *  2. 财星透干通根
+ *  3. 食神与财星相邻 (食→财链相连)
+ *  4. 日主身非弱 (能任食 + 财双泄)
+ *  5. 无偏印紧贴夺食 (或有财护食)
+ *  6. 无比劫透且无官杀制 (防夺财)
+ */
+export function isShiShenShengCai(ctx: Ctx): GejuDraft | null {
+  if (!ctx.tou('食神')) return null
+  if (!ctx.zang('食神')) return null                  // md 条件 1: 食神通根
+  if (!ctx.strongCat('财')) return null               // md 条件 2: 财有根
+  const adjCai =
+    ctx.adjacentTou('食神', '正财') || ctx.adjacentTou('食神', '偏财')
+  if (!adjCai) return null                             // md 条件 3: 食财相邻
+  if (ctx.shenRuo) return null                         // md 条件 4: 身非弱
+  if (ctx.tou('偏印') && ctx.adjacentTou('偏印', '食神') && !ctx.touCat('财')) return null
+  if ((ctx.tou('比肩') || ctx.tou('劫财')) && !ctx.touCat('官杀')) return null
+  return { name: '食神生财', note: '食财双透根相邻 · 身非弱 · 无枭无劫夺' }
+}
+
+/**
  * 伤官生财：身强 + 伤官透通根 + 财通根紧贴 + 印不透(以免克伤) + 无正官紧贴。
  * md 明文："身强才能用伤官生财 —— 身弱转入伤官佩印"；"原局无正官紧贴"。
  */

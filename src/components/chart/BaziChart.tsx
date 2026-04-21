@@ -1,4 +1,4 @@
-import type { Pillar } from '@/lib/store'
+import type { Pillar } from '@/lib'
 import { cellBase } from '@@/css'
 import { Row } from './Row'
 import { ShishenCell } from './ShishenCell'

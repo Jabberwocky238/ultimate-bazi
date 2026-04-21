@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { useBaziStore } from '@/lib/store'
-import { analyzeXiyong, type Cat, type GanZhiType, type WuXing } from '@/lib/xiyong'
-import { WUXING_TEXT, WUXING_BG_SOFT, WUXING_BORDER } from '@/lib/wuxing'
+import { useShiShen, analyzeXiyong, type Cat, type GanZhiType, type WuXing, WUXING_TEXT, WUXING_BG_SOFT, WUXING_BORDER } from '@/lib'
 import { SkillLink } from '@@/SkillLink'
 
 const CAT_TO_SHISHENS: Record<Cat, [string, string]> = {
@@ -31,7 +29,7 @@ const GANZHI_TONE: Record<GanZhiType, string> = {
 const SECTION_LABEL = 'text-[11px] tracking-[0.2em] font-medium text-slate-500 dark:text-slate-400 uppercase'
 
 export function XiyongPanel() {
-  const pillars = useBaziStore((s) => s.result.pillars)
+  const pillars = useShiShen((s) => s.result.pillars)
   const [open, setOpen] = useState(true)
   const a = analyzeXiyong(pillars)
   if (!a) return null

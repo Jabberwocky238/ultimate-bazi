@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { wuxingRelations, isYangGan, type Gan } from '@jabberwocky238/bazi-engine'
-import { useBaziStore } from '@/lib/store'
-import { WUXING_TEXT, WUXING_BG_SOFT, WUXING_BORDER, ganWuxing } from '@/lib/wuxing'
+import { useShiShen, WUXING_TEXT, WUXING_BG_SOFT, WUXING_BORDER, ganWuxing } from '@/lib'
 import { SkillLink } from '@@/SkillLink'
 
 type RelationKey = '同类' | '我生' | '我克' | '克我' | '生我'
@@ -30,7 +29,7 @@ const WUXING_TO_GANS: Record<string, { yang: string; yin: string }> = {
 }
 
 export function DayMasterRelations() {
-  const pillars = useBaziStore((s) => s.result.pillars)
+  const pillars = useShiShen((s) => s.result.pillars)
   const [open, setOpen] = useState(true)
   const dayGan = pillars[2]?.gan as Gan | undefined
   if (!dayGan) return null

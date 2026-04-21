@@ -1,4 +1,4 @@
-import { useBaziStore } from '@/lib/store'
+import { useShiShen } from '@/lib'
 import { BaziForm } from '@@/BaziForm'
 import { BaziMeta } from '@@/BaziMeta'
 import { BaziChart } from '@@/chart/BaziChart'
@@ -17,7 +17,7 @@ import { Footer } from '@@/Footer'
 import { ErrorBoundary } from '@@/ErrorBoundary'
 
 function App() {
-  const result = useBaziStore((s) => s.result)
+  const result = useShiShen((s) => s.result)
 
   return (
     <ErrorBoundary name="App">
