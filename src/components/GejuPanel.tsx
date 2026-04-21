@@ -27,9 +27,10 @@ const QUALITY_BORDER: Record<GejuQuality, string> = {
   neutral: 'border-slate-400/50 bg-slate-400/5 [--glow-color:#94a3b8]',
 }
 
-/** 岁运破格 → 红 / 岁运激发(吉) → 绿 / 否则沿用 QUALITY_BORDER。 */
+/** 岁运破格/冲害 → 红 / 岁运激发(吉) → 绿 / 否则沿用 QUALITY_BORDER。 */
 function hitBorderClass(h: GejuOutput): string {
-  if (h.suiyunBreak) return 'border-red-500 bg-red-500/10 [--glow-color:#ef4444]'
+  if (h.suiyunBreak || h.suiyunConquer)
+    return 'border-red-500 bg-red-500/10 [--glow-color:#ef4444]'
   if (h.suiyunTrigger && h.quality === 'good')
     return 'border-emerald-500 bg-emerald-500/10 [--glow-color:#10b981]'
   return QUALITY_BORDER[h.quality]
@@ -141,9 +142,13 @@ export function GejuPanel({ pillars }: { pillars: Pillar[] }) {
       </div>
 
       {(() => {
-        // 激发的岁运特定格局 → 算作"已成格"和原局归在一起
-        const activeHits = hits.filter((h) => !h.suiyunSpecific || h.suiyunTrigger)
-        const potentialHits = hits.filter((h) => h.suiyunSpecific && !h.suiyunTrigger)
+        // 原局段 = 非岁运特定
+        const activeHits = hits.filter((h) => !h.suiyunSpecific)
+        // 岁运有变段 = 全部岁运特定（无论是否默认成格/已激发）
+        const suiyunHits = hits.filter((h) => h.suiyunSpecific)
+        // 未激活（需淡显） = 岁运特定 && 非默认成格 && 未被岁运激发
+        const isDimmed = (h: GejuOutput) =>
+          !!h.suiyunSpecific && !h.suiyunDefaultTrigger && !h.suiyunTrigger
         if (hits.length === 0) {
           return <p className="text-sm text-slate-500 dark:text-slate-400">未识别到明显格局</p>
         }
@@ -167,7 +172,7 @@ export function GejuPanel({ pillars }: { pillars: Pillar[] }) {
             <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
               <div className="mb-2 flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] tracking-[0.2em] font-medium text-slate-500 dark:text-slate-400">
-                  需要岁运
+                  岁运有变
                 </span>
                 {hasSuiyun ? (
                   <span className="flex items-center gap-1 text-[10px]">
@@ -188,10 +193,12 @@ export function GejuPanel({ pillars }: { pillars: Pillar[] }) {
                   </span>
                 )}
               </div>
-              {potentialHits.length > 0 ? (
-                <div className="flex flex-wrap gap-2 opacity-60">
-                  {potentialHits.map((h) => (
-                    <GejuChip key={h.name} hit={h} />
+              {suiyunHits.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {suiyunHits.map((h) => (
+                    <span key={h.name} className={isDimmed(h) ? 'opacity-60' : ''}>
+                      <GejuChip hit={h} />
+                    </span>
                   ))}
                 </div>
               ) : (

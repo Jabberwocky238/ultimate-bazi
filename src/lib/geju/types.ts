@@ -12,6 +12,8 @@ export interface GejuHit {
   suiyunTrigger?: boolean
   /** 原局成格，**岁运破格**（大运/流年冲散）。 */
   suiyunBreak?: boolean
+  // 默认成格
+  suiyunDefaultTrigger?: boolean
   // **岁运冲害 */
   suiyunConquer?: boolean
 }
