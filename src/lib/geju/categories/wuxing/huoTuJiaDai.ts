@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 火土夹带：火土皆透有根 + 有水调湿。 */

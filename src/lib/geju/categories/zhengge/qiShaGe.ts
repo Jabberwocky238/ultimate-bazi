@@ -1,4 +1,4 @@
-import { YANG_REN, type Ctx } from '../../ctx'
+import { YANG_REN, type Ctx } from '../../types'
 import type { Gan } from '@jabberwocky238/bazi-engine'
 import type { GejuHit } from '../../types'
 import { monthGeFormed } from './_util'

@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 水多木漂：木日主 + 水过旺 + 木无根 + 无土 + 无火。 */

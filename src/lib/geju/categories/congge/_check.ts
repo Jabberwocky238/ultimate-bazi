@@ -1,5 +1,5 @@
-import type { Ctx } from '../../ctx'
-import type { ShishenCat } from '../../ctx'
+import type { Ctx } from '../../types'
+import type { ShishenCat } from '../../types'
 import type { WuXing } from '@jabberwocky238/bazi-engine'
 
 /**

@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 木火相煎：木日主 + 火过旺 + 木根虚 + 无水。 */

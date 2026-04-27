@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 水冷木寒：木日主 + 冬 + 水多 + 无火 + 无土。 */

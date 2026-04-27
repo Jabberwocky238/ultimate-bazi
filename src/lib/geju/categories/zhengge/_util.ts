@@ -1,4 +1,4 @@
-import { YANG_REN, type Ctx } from '../../ctx'
+import { YANG_REN, type Ctx } from '../../types'
 import type { Shishen } from '@jabberwocky238/bazi-engine'
 
 /** 正格通用钩子：月支若是日主的阳刃/阴刃位 → 所有正格让位给阳刃格。 */

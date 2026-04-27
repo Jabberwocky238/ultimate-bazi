@@ -1,4 +1,4 @@
-import { LU, type Ctx } from '../../ctx'
+import { LU, type Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /**

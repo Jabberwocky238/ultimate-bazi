@@ -1,4 +1,4 @@
-import { useShiShen } from '@@/stores'
+import { useBazi } from '@/lib'
 import { BaziForm } from '@@/BaziForm'
 import { BaziMeta } from '@@/BaziMeta'
 import { BaziChart } from '@@/chart/BaziChart'
@@ -17,7 +17,10 @@ import { Footer } from '@@/Footer'
 import { ErrorBoundary } from '@@/ErrorBoundary'
 
 function App() {
-  const result = useShiShen((s) => s.result)
+  const solarStr = useBazi((s) => s.solarStr)
+  const trueSolarStr = useBazi((s) => s.trueSolarStr)
+  const lunarStr = useBazi((s) => s.lunarStr)
+  const pillars = useBazi((s) => s.pillars)
 
   return (
     <ErrorBoundary name="App">
@@ -32,17 +35,17 @@ function App() {
         <div className="grid gap-5 md:gap-6 md:grid-cols-[minmax(0,6fr)_minmax(0,4fr)]">
           <section className="min-w-0">
             <ErrorBoundary name="BaziForm"><BaziForm /></ErrorBoundary>
-            <ErrorBoundary name="BaziMeta"><BaziMeta solar={result.solarStr} trueSolar={result.trueSolarStr} lunar={result.lunarStr} /></ErrorBoundary>
-            <ErrorBoundary name="BaziChart"><BaziChart pillars={result.pillars} /></ErrorBoundary>
+            <ErrorBoundary name="BaziMeta"><BaziMeta solar={solarStr} trueSolar={trueSolarStr} lunar={lunarStr} /></ErrorBoundary>
+            <ErrorBoundary name="BaziChart"><BaziChart pillars={pillars} /></ErrorBoundary>
             <ErrorBoundary name="DayMasterRelations"><DayMasterRelations /></ErrorBoundary>
-            <ErrorBoundary name="GejuPanel"><GejuPanel pillars={result.pillars} /></ErrorBoundary>
+            <ErrorBoundary name="GejuPanel"><GejuPanel /></ErrorBoundary>
             <ErrorBoundary name="DaYunPanel"><DaYunPanel /></ErrorBoundary>
-            <ErrorBoundary name="ShishenProportion"><ShishenProportion pillars={result.pillars} /></ErrorBoundary>
+            <ErrorBoundary name="ShishenProportion"><ShishenProportion pillars={pillars} /></ErrorBoundary>
             <ErrorBoundary name="StrengthPanel"><StrengthPanel /></ErrorBoundary>
             <ErrorBoundary name="GanZhiPanel"><GanZhiPanel /></ErrorBoundary>
             <ErrorBoundary name="XiyongPanel"><XiyongPanel /></ErrorBoundary>
             {/* <BalancePanel /> */}
-            <ErrorBoundary name="SkillIndex"><SkillIndex pillars={result.pillars} /></ErrorBoundary>
+            <ErrorBoundary name="SkillIndex"><SkillIndex pillars={pillars} /></ErrorBoundary>
             <ErrorBoundary name="BasicsPanel"><BasicsPanel /></ErrorBoundary>
           </section>
 

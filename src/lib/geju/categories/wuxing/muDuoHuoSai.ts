@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 木多火塞：火日主 + 地支木≥3 + 火无根/弱 + 无金疏通。 */

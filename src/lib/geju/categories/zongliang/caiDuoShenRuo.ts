@@ -1,4 +1,4 @@
-import { SHI_SHEN_CAT, type Ctx } from '../../ctx'
+import { SHI_SHEN_CAT, type Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 import type { Shishen } from '@jabberwocky238/bazi-engine'
 

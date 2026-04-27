@@ -10,13 +10,14 @@ import {
 import {
   HOUR_UNKNOWN,
   shishenWuxing,
-  computeDaYun,
+  useBazi,
+  useDayun,
   type DaYunStep,
   type LiuNianEntry,
   type LiuYueEntry,
 } from '@/lib'
 import { WUXING_TEXT, WUXING_BORDER, WUXING_FROM } from '@@/css'
-import { useBaziStore, useBazi, useShiShen, type ExtraPillar } from '@@/stores'
+import { useBaziStore, useBaziInput, type ExtraPillar } from '@@/stores'
 
 interface GzCell {
   gan: string
@@ -66,20 +67,11 @@ type LiuYueEntryView = LiuYueEntry & { cell: GzCell }
 type LiuNianEntryView = LiuNianEntry & { cell: GzCell; liuyueView: LiuYueEntryView[] }
 
 export function DaYunPanel() {
-  const year = useBazi((s) => s.year)
-  const month = useBazi((s) => s.month)
-  const day = useBazi((s) => s.day)
-  const hour = useBazi((s) => s.hour)
-  const minute = useBazi((s) => s.minute)
-  const sex = useBazi((s) => s.sex)
-  const dayGan = useShiShen((s) => s.result.pillars[2]?.gan ?? '')
+  const hour = useBaziInput((s) => s.hour)
+  const dayGan = useBazi((s) => s.pillars[2]?.gan ?? '')
+  const raw = useDayun((s) => s.data)
   const extras = useBaziStore((s) => s.extraPillars)
   const setExtras = useBaziStore((s) => s.setExtraPillars)
-
-  const raw = useMemo(
-    () => computeDaYun(year, month, day, hour, minute, sex),
-    [year, month, day, hour, minute, sex],
-  )
 
   const data = useMemo(() => {
     if (!raw) return null

@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 土重金埋（放宽版）：金日主 + 土势压金 + 金虚 + 无有力木/水救。 */

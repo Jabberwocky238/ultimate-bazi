@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { HOUR_UNKNOWN } from '@/lib'
-import { useBazi } from '@@/stores'
+import { useBaziInput } from '@@/stores'
 
 const STORAGE_KEY = 'bazi.saved.v1'
 const SEEDED_KEY = 'bazi.saved.seeded'
@@ -75,14 +75,14 @@ const btnCls =
   'transition-colors'
 
 export function SaveLoadControls() {
-  const year = useBazi((s) => s.year)
-  const month = useBazi((s) => s.month)
-  const day = useBazi((s) => s.day)
-  const hour = useBazi((s) => s.hour)
-  const minute = useBazi((s) => s.minute)
-  const sex = useBazi((s) => s.sex)
-  const setDate = useBazi((s) => s.setDate)
-  const syncToUrl = useBazi((s) => s.syncToUrl)
+  const year = useBaziInput((s) => s.year)
+  const month = useBaziInput((s) => s.month)
+  const day = useBaziInput((s) => s.day)
+  const hour = useBaziInput((s) => s.hour)
+  const minute = useBaziInput((s) => s.minute)
+  const sex = useBaziInput((s) => s.sex)
+  const setDate = useBaziInput((s) => s.setDate)
+  const syncToUrl = useBaziInput((s) => s.syncToUrl)
 
   const [entries, setEntries] = useState<SavedEntry[]>([])
   const dialogRef = useRef<HTMLDialogElement>(null)

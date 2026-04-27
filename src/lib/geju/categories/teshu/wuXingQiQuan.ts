@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 import { ganWuxing } from '@jabberwocky238/bazi-engine'
 

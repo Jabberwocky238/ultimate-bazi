@@ -1,4 +1,4 @@
-import { CHONG_PAIR, type Ctx } from '../../ctx'
+import { CHONG_PAIR, type Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /**

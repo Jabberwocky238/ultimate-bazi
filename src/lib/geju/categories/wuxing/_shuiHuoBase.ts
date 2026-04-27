@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 
 /** 水火双透有根 + 势均 — 水火对的共同前置。 */
 export function shuiHuoBase(ctx: Ctx): boolean {

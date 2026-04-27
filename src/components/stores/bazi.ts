@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { Sex } from '@jabberwocky238/bazi-engine'
-import { HOUR_UNKNOWN } from '@/lib'
+import { HOUR_UNKNOWN, computeBazi, useBazi, computeDaYun, useDayun } from '@/lib'
 
 export interface BaziInputState {
   year: number
@@ -49,7 +49,7 @@ function readQuery() {
 
 const initial = readQuery()
 
-export const useBazi = create<BaziInputState>((set, get) => ({
+export const useBaziInput = create<BaziInputState>((set, get) => ({
   ...initial,
   setDate: ({ year, month, day, hour, minute, sex }) => {
     const hourKnown = hour !== HOUR_UNKNOWN
@@ -80,3 +80,28 @@ export const useBazi = create<BaziInputState>((set, get) => ({
     window.history.replaceState(null, '', next)
   },
 }))
+
+// ————————————————————————————————————————————————————————
+// 输入 → 输出 wiring：把日期输入算成 BaziResult / DaYunData，分别填入
+// lib 里的 useBazi / useDayun。下游 useShishen / useStrength / useShensha
+// / useGeju / useXiyong 会通过订阅 useBazi 自动更新。
+// ————————————————————————————————————————————————————————
+
+function pushBazi(s: BaziInputState) {
+  useBazi.getState().setBazi(computeBazi(s.year, s.month, s.day, s.hour, s.minute, s.sex))
+  useDayun.getState().setDayun(computeDaYun(s.year, s.month, s.day, s.hour, s.minute, s.sex))
+}
+
+pushBazi(useBaziInput.getState())
+
+useBaziInput.subscribe((s, prev) => {
+  if (
+    s.year === prev.year &&
+    s.month === prev.month &&
+    s.day === prev.day &&
+    s.hour === prev.hour &&
+    s.minute === prev.minute &&
+    s.sex === prev.sex
+  ) return
+  pushBazi(s)
+})

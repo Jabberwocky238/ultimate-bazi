@@ -1,4 +1,4 @@
-import { SHI_SHEN_CAT, type Ctx } from '../../ctx'
+import { SHI_SHEN_CAT, type Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 比劫重重：比劫透干 ≥ 2 或 地支主气比劫 ≥ 3。 */

@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 火多金熔（放宽版）：金日主 + 火盛 + 金虚 + 无有力水/土救。 */

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { Gan, Zhi, Shishen } from '@jabberwocky238/bazi-engine'
 import type { SkillFocus } from '@/lib'
-import { useBazi } from './bazi'
+import { useBaziInput } from './bazi'
 
 /** 大运/流年/流月叠加柱 —— UI 层临时数据，不含纳音/神煞等派生字段。 */
 export interface ExtraPillar {
@@ -31,7 +31,7 @@ export const useBaziStore = create<UiState>((set) => ({
 }))
 
 // 输入变化 → 清空大运/流年叠加
-useBazi.subscribe((s, prev) => {
+useBaziInput.subscribe((s, prev) => {
   if (
     s.year === prev.year &&
     s.month === prev.month &&

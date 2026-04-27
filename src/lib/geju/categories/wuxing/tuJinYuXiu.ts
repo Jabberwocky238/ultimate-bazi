@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 土金毓秀：土日主 + 金透通根 + 土有根 + 无木透 + 火 < 2。 */

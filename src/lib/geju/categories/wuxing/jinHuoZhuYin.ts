@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 金火铸印：金日主 + 金有根 + 火透坐根且不过旺。 */

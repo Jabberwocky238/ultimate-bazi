@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 火旺金衰：金日主 + 火透≥2 + 金无根 + 无土通关。 */

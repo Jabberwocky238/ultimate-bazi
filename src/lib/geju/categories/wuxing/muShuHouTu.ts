@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 木疏厚土：土日主 + 土极厚 + 木有根能疏 + 木不过旺 + 无重金克木。 */

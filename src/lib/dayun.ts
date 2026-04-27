@@ -1,4 +1,5 @@
 import { Solar } from 'lunar-typescript'
+import { create } from 'zustand'
 import type { Sex } from '@jabberwocky238/bazi-engine'
 import { HOUR_UNKNOWN } from './shishen'
 
@@ -86,3 +87,18 @@ export function computeDaYun(
     return null
   }
 }
+
+// ————————————————————————————————————————————————————————
+// useDayun — 大运 store。setDayun(data) 由调用方 (输入监听) 写入。
+// 不直接订阅 useBazi，因为大运需要原始日期/性别而不是 pillars。
+// ————————————————————————————————————————————————————————
+
+interface DaYunStore {
+  data: DaYunData | null
+  setDayun: (d: DaYunData | null) => void
+}
+
+export const useDayun = create<DaYunStore>()((set) => ({
+  data: null,
+  setDayun: (d) => set({ data: d }),
+}))

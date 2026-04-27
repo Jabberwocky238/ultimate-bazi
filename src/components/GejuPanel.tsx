@@ -11,6 +11,8 @@ import {
   type Pillar,
   type PillarType,
   detectGeju,
+  useBazi,
+  useGeju,
   shishenWuxing,
   type GejuQuality,
   type GejuCategory,
@@ -86,29 +88,31 @@ function extraToPillar(e: ExtraPillar, dayGan: Gan): Pillar {
   }
 }
 
-export function GejuPanel({ pillars }: { pillars: Pillar[] }) {
+export function GejuPanel() {
+  const pillars = useBazi((s) => s.pillars)
+  const baseHits = useGeju((s) => s.hits)
   const extras = useBaziStore((s) => s.extraPillars)
   const dayGan = pillars[2]?.gan as Gan | undefined
 
   const { hits, activeDaYun, activeLiuNian } = useMemo(() => {
     const dy = extras.find((e) => e.label === '大运')
     const ln = extras.find((e) => e.label === '流年')
-    if (!dayGan) {
+    if ((!dy && !ln) || !dayGan) {
       return {
-        hits: detectGeju(pillars),
-        activeDaYun: null as ExtraPillar | null,
-        activeLiuNian: null as ExtraPillar | null,
+        hits: baseHits,
+        activeDaYun: dy ?? null,
+        activeLiuNian: ln ?? null,
       }
     }
     return {
-      hits: detectGeju(pillars, {
+      hits: detectGeju({
         dayun: dy ? extraToPillar(dy, dayGan) : undefined,
         liunian: ln ? extraToPillar(ln, dayGan) : undefined,
       }),
       activeDaYun: dy ?? null,
       activeLiuNian: ln ?? null,
     }
-  }, [pillars, extras, dayGan])
+  }, [pillars, extras, dayGan, baseHits])
 
   const hitSet = new Set(hits.map((h) => h.name))
   const others = skillNames('geju').filter((n) => !hitSet.has(n))

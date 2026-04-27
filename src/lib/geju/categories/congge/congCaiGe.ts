@@ -1,4 +1,4 @@
-import { WX_CONTROLS, type Ctx } from '../../ctx'
+import { WX_CONTROLS, type Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 import { checkCong } from './_check'
 

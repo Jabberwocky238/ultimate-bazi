@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 斧斤伐木：木日主 + 木有根 + 金透根适度 + 水/土不过多。 */

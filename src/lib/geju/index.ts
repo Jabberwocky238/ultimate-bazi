@@ -1,10 +1,12 @@
+import { create } from 'zustand'
+import { ganWuxing, zhiWuxing, type Pillar as EnginePillar, type WuXing } from '@jabberwocky238/bazi-engine'
 import type { Pillar } from '../store'
-import type { GejuHit, Detector, GejuQuality, GejuCategory } from './types'
-import { Ctx, type DaYunMeta } from './ctx'
+import type { Ctx, Detector, GejuHit, GejuQuality, GejuCategory, DaYunMeta } from './types'
+import { useBazi } from '../shishen'
+import { useShishen } from '../shishen'
+import { useStrength } from '../strength'
 
-export type { GejuQuality, GejuCategory, GejuHit } from './types'
-export type { DaYunMeta } from './ctx'
-export { Ctx } from './ctx'
+export type { Ctx, GejuQuality, GejuCategory, GejuHit, DaYunMeta } from './types'
 
 import * as zhengge from './categories/zhengge'
 import * as guansha from './categories/guansha'
@@ -105,18 +107,82 @@ export const DETECTORS: Record<string, [Detector, GejuQuality, GejuCategory]> = 
 
 export type GejuOutput = GejuHit & { quality: GejuQuality, category: GejuCategory }
 
-export function detectGeju(
-  pillars: Pillar[],
-  extras: { dayun?: Pillar; liunian?: Pillar; daYunMeta?: DaYunMeta } = {},
-): GejuOutput[] {
-  if (pillars.length !== 4) return []
-  const [year, month, day, hour] = pillars
-  const ctx = new Ctx({
-    year, month, day, hour,
-    dayun: extras.dayun,
-    liunian: extras.liunian,
-  })
-  if (extras.daYunMeta) ctx.daYunMeta = extras.daYunMeta
+interface DetectExtras {
+  dayun?: Pillar
+  liunian?: Pillar
+  daYunMeta?: DaYunMeta
+}
+
+/**
+ * 由当前 useBazi / useShishen / useStrength 状态 + extras 现场拼出 ctx。
+ * 替代原 lib/geju/ctx.ts 的 Ctx class —— 数据/方法都已分散到三个 store。
+ */
+function composeCtx(extras: DetectExtras): Ctx | null {
+  const bazi = useBazi.getState()
+  if (bazi.pillars.length !== 4) return null
+  const shishen = useShishen.getState()
+  const strength = useStrength.getState()
+  const [year, month, day, hour] = bazi.pillars
+  const extraArr: Pillar[] = []
+  if (extras.dayun) extraArr.push(extras.dayun)
+  if (extras.liunian) extraArr.push(extras.liunian)
+  return {
+    // useBazi
+    pillars: { year, month, day, hour, dayun: extras.dayun, liunian: extras.liunian },
+    season: bazi.season,
+    dayYang: bazi.dayYang,
+    dayGan: bazi.dayGan as Ctx['dayGan'],
+    dayZhi: bazi.dayZhi as Ctx['dayZhi'],
+    dayGz: bazi.dayGz,
+    dayWx: bazi.dayWx as Ctx['dayWx'],
+    yearZhi: bazi.yearZhi as Ctx['yearZhi'],
+    monthZhi: bazi.monthZhi as Ctx['monthZhi'],
+    monthCat: bazi.monthCat,
+    monthZhiBeingChong: bazi.monthZhiBeingChong,
+    mainArr: bazi.mainArr,
+    ganSet: bazi.ganSet,
+    ganWxCount: bazi.ganWxCount,
+    zhiMainWxCount: bazi.zhiMainWxCount,
+    touWx: bazi.touWx,
+    rootWx: bazi.rootWx,
+    rootExt: bazi.rootExt,
+    // useShishen
+    ganSs: shishen.ganSs,
+    mainZhiArr: shishen.mainZhiArr,
+    allZhiArr: shishen.allZhiArr,
+    tou: shishen.tou,
+    touCat: shishen.touCat,
+    zang: shishen.zang,
+    has: shishen.has,
+    hasCat: shishen.hasCat,
+    mainAt: shishen.mainAt,
+    strong: shishen.strong,
+    strongCat: shishen.strongCat,
+    countOf: shishen.countOf,
+    countCat: shishen.countCat,
+    adjacentTou: shishen.adjacentTou,
+    // useStrength
+    strength: strength.analysis,
+    level: strength.level,
+    deLing: strength.deLing,
+    deDi: strength.deDi,
+    deShi: strength.deShi,
+    shenWang: strength.shenWang,
+    shenRuo: strength.shenRuo,
+    // extras
+    extraArr,
+    extraPillars: extraArr,
+    daYunMeta: extras.daYunMeta ?? null,
+    extraGanWxCount: (wx: WuXing) =>
+      extraArr.filter((p) => ganWuxing(p.gan as EnginePillar['gan']) === wx).length,
+    extraZhiMainWxCount: (wx: WuXing) =>
+      extraArr.filter((p) => zhiWuxing(p.zhi as EnginePillar['zhi']) === wx).length,
+  }
+}
+
+export function detectGeju(extras: DetectExtras = {}): GejuOutput[] {
+  const ctx = composeCtx(extras)
+  if (!ctx) return []
   const hits: GejuOutput[] = []
   for (const [detect, quality, category] of Object.values(DETECTORS)) {
     const h = detect(ctx)
@@ -125,3 +191,21 @@ export function detectGeju(
   }
   return hits
 }
+
+// ————————————————————————————————————————————————————————
+// useGeju — 自动跟随 useBazi.pillars 重算原局格局 (不含岁运)。
+// 岁运叠加判定仍由调用方 (GejuPanel) 直接调 detectGeju 完成。
+// ————————————————————————————————————————————————————————
+
+interface GejuStore {
+  hits: GejuOutput[]
+}
+
+export const useGeju = create<GejuStore>()(() => ({
+  hits: detectGeju(),
+}))
+
+useBazi.subscribe((s, prev) => {
+  if (s.pillars === prev.pillars) return
+  useGeju.setState({ hits: detectGeju() })
+})

@@ -9,7 +9,7 @@
 
 import { test } from 'bun:test'
 import type { Sex } from '@jabberwocky238/bazi-engine'
-import { baziToPillars, type Bazi } from '../shishen'
+import { baziToPillars, type Bazi, useBazi } from '../shishen'
 import { detectGeju, DETECTORS } from './index'
 import type { GejuCategory } from './types'
 
@@ -47,7 +47,14 @@ for (let i = 0; i < N; i++) {
   const bazi = randomBazi()
   try {
     const pillars = baziToPillars(bazi, sex)
-    const hits = detectGeju(pillars)
+    useBazi.getState().setBazi({
+      pillars,
+      solarStr: '',
+      trueSolarStr: '',
+      lunarStr: '',
+      hourKnown: true,
+    })
+    const hits = detectGeju()
     for (const h of hits) {
       hitCount[h.name] = (hitCount[h.name] ?? 0) + 1
       const cat = nameToCategory[h.name] ?? '未知'

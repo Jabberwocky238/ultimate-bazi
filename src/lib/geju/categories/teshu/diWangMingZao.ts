@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 import { isCaiGuanYinQuan } from '../zongliang'
 import { isGuanShaHunZa } from '../guansha'

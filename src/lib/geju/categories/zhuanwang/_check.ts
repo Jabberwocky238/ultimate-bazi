@@ -1,4 +1,4 @@
-import { WX_GENERATED_BY, type Ctx } from '../../ctx'
+import { WX_GENERATED_BY, type Ctx } from '../../types'
 import type { WuXing } from '@jabberwocky238/bazi-engine'
 
 /**

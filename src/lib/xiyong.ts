@@ -11,10 +11,12 @@
  * 本实现不含合冲刑害动态修正、细分病药法，md 亦说需人工综合再审。
  */
 
+import { create } from 'zustand'
 import type { Pillar } from './store'
 import { ganWuxing, zhiWuxing } from '@jabberwocky238/bazi-engine'
-import { analyzeStrength } from './strength'
+import { useStrength } from './strength'
 import { detectGeju } from './geju'
+import { useBazi } from './shishen'
 import {
   GENERATES as GEN,
   CONTROLS as CON,
@@ -316,7 +318,7 @@ export function analyzeXiyong(pillars: Pillar[]): XiyongAnalysis | null {
   const dayWx = ganWuxing(dayGan) as WuXing
   if (!dayWx) return null
 
-  const strength = analyzeStrength(pillars)
+  const strength = useStrength.getState().analysis
   if (!strength) return null
   const level = strength.level
   const strongLv = new Set(['身极旺', '身旺', '身中强', '身中(偏强)'])
@@ -325,7 +327,7 @@ export function analyzeXiyong(pillars: Pillar[]): XiyongAnalysis | null {
     ? 'strong' : weakLv.has(level) ? 'weak' : 'neutral'
 
   // 从格 / 专旺格 覆写
-  const hits = detectGeju(pillars)
+  const hits = detectGeju()
   const congHit = hits.find((h) => h.category === '从格')
   const zhuanHit = hits.find((h) => h.category === '专旺格')
   let congOverride: string | null = null
@@ -426,3 +428,20 @@ export function analyzeXiyong(pillars: Pillar[]): XiyongAnalysis | null {
     congOverride,
   }
 }
+
+// ————————————————————————————————————————————————————————
+// useXiyong — 自动跟随 useBazi.pillars 重算 analyzeXiyong
+// ————————————————————————————————————————————————————————
+
+interface XiyongStore {
+  analysis: XiyongAnalysis | null
+}
+
+export const useXiyong = create<XiyongStore>()(() => ({
+  analysis: analyzeXiyong(useBazi.getState().pillars),
+}))
+
+useBazi.subscribe((s, prev) => {
+  if (s.pillars === prev.pillars) return
+  useXiyong.setState({ analysis: analyzeXiyong(s.pillars) })
+})

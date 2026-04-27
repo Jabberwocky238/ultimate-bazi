@@ -1,4 +1,4 @@
-import { KUIGANG_DAY, type Ctx } from '../../ctx'
+import { KUIGANG_DAY, type Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 import type { WuXing } from '@jabberwocky238/bazi-engine'
 

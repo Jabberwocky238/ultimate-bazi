@@ -1,4 +1,4 @@
-import type { Ctx } from '../../ctx'
+import type { Ctx } from '../../types'
 import type { GejuHit } from '../../types'
 
 /** 金寒水冷：冬月 + (日主金或水) + 金水齐透 + 无火透。 */
