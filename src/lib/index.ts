@@ -1,8 +1,10 @@
+export * from './shared'
+export * from './compute'
 export * from './shishen'
+export * from './ganzhi'
 export * from './store'
 export * from './dayun'
 export * from './skills'
 export * from './strength'
 export * from './xiyong'
 export * from './geju'
-

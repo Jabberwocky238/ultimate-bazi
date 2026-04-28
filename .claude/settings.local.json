@@ -5,7 +5,13 @@
       "Bash(bun x *)",
       "Bash(bun remove *)",
       "Bash(git submodule *)",
-      "Bash(grep -E \"\\\\.md$\")"
+      "Bash(grep -E \"\\\\.md$\")",
+      "Bash(echo \"---exit:$?---\")",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git mv *)",
+      "Bash(echo \"---exit $?---\")",
+      "Bash(git add *)"
     ],
     "deny": [
       "Bash(npm install *)",

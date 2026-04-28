@@ -9,7 +9,9 @@
 
 import { test } from 'bun:test'
 import type { Sex } from '@jabberwocky238/bazi-engine'
-import { baziToPillars, type Bazi, useBazi } from '../shishen'
+import { baziToPillars } from '../compute'
+import { type Bazi } from '../shared'
+import { useBazi } from '../shishen'
 import { detectGeju, DETECTORS } from './index'
 import type { GejuCategory } from './types'
 

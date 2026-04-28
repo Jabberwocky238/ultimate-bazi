@@ -5,11 +5,9 @@ import { BaziChart } from '@@/chart/BaziChart'
 import { SkillIndex } from '@@/SkillIndex'
 import { SkillPanel } from '@@/SkillPanel'
 import { BasicsPanel } from '@@/BasicsPanel'
-import { ShishenProportion } from '@@/ShishenProportion'
-import { DayMasterRelations } from '@@/DayMasterRelations'
+import { ElementsPanel } from '@@/ElementsPanel'
 import { GejuPanel } from '@@/GejuPanel'
 import { DaYunPanel } from '@@/DaYunPanel'
-import { BalancePanel } from '@@/BalancePanel'
 import { StrengthPanel } from '@@/StrengthPanel'
 import { XiyongPanel } from '@@/XiyongPanel'
 import { GanZhiPanel } from '@@/GanZhiPanel'
@@ -37,14 +35,12 @@ function App() {
             <ErrorBoundary name="BaziForm"><BaziForm /></ErrorBoundary>
             <ErrorBoundary name="BaziMeta"><BaziMeta solar={solarStr} trueSolar={trueSolarStr} lunar={lunarStr} /></ErrorBoundary>
             <ErrorBoundary name="BaziChart"><BaziChart pillars={pillars} /></ErrorBoundary>
-            <ErrorBoundary name="DayMasterRelations"><DayMasterRelations /></ErrorBoundary>
             <ErrorBoundary name="GejuPanel"><GejuPanel /></ErrorBoundary>
             <ErrorBoundary name="DaYunPanel"><DaYunPanel /></ErrorBoundary>
-            <ErrorBoundary name="ShishenProportion"><ShishenProportion pillars={pillars} /></ErrorBoundary>
+            <ErrorBoundary name="ElementsPanel"><ElementsPanel /></ErrorBoundary>
             <ErrorBoundary name="StrengthPanel"><StrengthPanel /></ErrorBoundary>
             <ErrorBoundary name="GanZhiPanel"><GanZhiPanel /></ErrorBoundary>
             <ErrorBoundary name="XiyongPanel"><XiyongPanel /></ErrorBoundary>
-            {/* <BalancePanel /> */}
             <ErrorBoundary name="SkillIndex"><SkillIndex pillars={pillars} /></ErrorBoundary>
             <ErrorBoundary name="BasicsPanel"><BasicsPanel /></ErrorBoundary>
           </section>

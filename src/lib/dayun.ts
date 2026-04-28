@@ -1,7 +1,7 @@
 import { Solar } from 'lunar-typescript'
 import { create } from 'zustand'
 import type { Sex } from '@jabberwocky238/bazi-engine'
-import { HOUR_UNKNOWN } from './shishen'
+import { HOUR_UNKNOWN } from './shared'
 
 export interface DaYunStep {
   /** lunar-typescript 的原始 index；0 表示起运前 */

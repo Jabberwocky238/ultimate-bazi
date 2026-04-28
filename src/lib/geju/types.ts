@@ -126,7 +126,7 @@ export type Detector = (ctx: Ctx) => GejuHit | null
 // 旧路径 `from '../../types'`。
 // ————————————————————————————————————————————————————————
 
-export { SHI_SHEN_CAT, CHONG_PAIR } from '../shishen'
+export { SHI_SHEN_CAT, CHONG_PAIR } from '../shared'
 
 /** 日主禄位（十干禄支）。 */
 export const LU: Record<Gan, Zhi> = {
