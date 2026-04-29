@@ -58,7 +58,6 @@ export function GanZhiPanel() {
   const chongtotal = a.天干相冲.length + a.地支相冲.length
   const xinghaiototal =
     a.地支相刑.length + a.地支相害.length + a.地支相破.length + a.地支暗合.length
-  const zhuTotal = a.盖头.length + a.截脚.length + a.覆载.length
 
   return (
     <section className="mt-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-4 md:p-5 shadow-sm">
@@ -82,7 +81,6 @@ export function GanZhiPanel() {
           <span className="text-rose-700 dark:text-rose-400">冲 {chongtotal}</span>
           <span className="text-amber-700 dark:text-amber-400">刑害破 {xinghaiototal}</span>
           <span className="text-indigo-700 dark:text-indigo-400">库 {a.墓库.length}</span>
-          <span className="text-slate-500 dark:text-slate-400">柱 {zhuTotal}</span>
         </div>
       </button>
 
@@ -105,9 +103,6 @@ export function GanZhiPanel() {
           </Section>
           <Section label="⑥ 墓库 · 开 / 闭 / 静">
             <FindingList list={a.墓库} />
-          </Section>
-          <Section label="⑦ 柱内 · 盖头 / 截脚 / 覆载">
-            <FindingList list={[...a.盖头, ...a.截脚, ...a.覆载]} />
           </Section>
 
           <div className="text-[10px] text-slate-400 dark:text-slate-600 text-right leading-5 pt-2 border-t border-slate-100 dark:border-slate-800">

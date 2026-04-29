@@ -258,6 +258,7 @@ export function ElementsPanel() {
   const extras = useBaziStore((s) => s.extraPillars)
   const setExtras = useBaziStore((s) => s.setExtraPillars)
   const [open, setOpen] = useState(true)
+  const [showAdj, setShowAdj] = useState(false)
 
   const data = useMemo(
     () => compute(pillars, extras, dayGan),
@@ -268,13 +269,6 @@ export function ElementsPanel() {
   const rel = dayGan ? wuxingRelations(dayGan as Gan) : null
 
   const wxTotal = WUXINGS.reduce((s, w) => s + (data.wxWeight[w] ?? 0), 0)
-  const wxBars = WUXINGS
-    .map((w) => ({
-      wuxing: w,
-      weight: data.wxWeight[w] ?? 0,
-      pct: wxTotal > 0 ? ((data.wxWeight[w] ?? 0) / wxTotal) * 100 : 0,
-    }))
-    .sort((a, b) => b.weight - a.weight)
 
   const ssTotal = data.ssOrder.reduce((s, n) => s + (data.ssWeight[n] ?? 0), 0)
   const ssBars = data.ssOrder
@@ -343,11 +337,11 @@ export function ElementsPanel() {
 
       {open && (
         <>
-          {/* 五行关系（依日主） */}
+          {/* 五行 · 关系 + 占比 (合并后的视图) */}
           {rel && dayGan && (
-            <div className="mb-5">
+            <div>
               <div className="mb-2 flex items-center gap-2 text-[11px] tracking-[0.2em] font-medium text-slate-500 dark:text-slate-400">
-                <span>五行关系</span>
+                <span>五行 · 关系 + 占比</span>
                 <span className="flex items-center gap-1.5 ml-2 normal-case tracking-normal">
                   <span className="text-slate-500 dark:text-slate-400">日主</span>
                   <span
@@ -364,8 +358,11 @@ export function ElementsPanel() {
                     {isYangGan(dayGan as Gan) ? '阳' : '阴'}{ganWuxing(dayGan as Gan)}
                   </span>
                 </span>
+                <span className="ml-auto text-[10px] text-slate-400 dark:text-slate-600 normal-case tracking-normal">
+                  已计入合化 / 冲克 / 刑害
+                </span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {REL_ROWS.map((row) => {
                   const target = rel[row.relation]
                   const tText = WUXING_TEXT[target] ?? ''
@@ -373,6 +370,9 @@ export function ElementsPanel() {
                   const pair = WUXING_TO_GANS[target]
                   const sameGan = pair ? (dayYang ? pair.yang : pair.yin) : ''
                   const diffGan = pair ? (dayYang ? pair.yin : pair.yang) : ''
+                  const weight = data.wxWeight[target] ?? 0
+                  const pct = wxTotal > 0 ? (weight / wxTotal) * 100 : 0
+                  const barColor = WUXING_BG_STRONG[target] ?? 'bg-slate-400'
                   return (
                     <div
                       key={row.relation}
@@ -384,12 +384,24 @@ export function ElementsPanel() {
                       <span className={`w-5 text-center font-bold text-sm md:text-base shrink-0 ${tText}`}>
                         {target}
                       </span>
-                      <span className={`w-9 md:w-10 text-sm font-medium shrink-0 ${tText}`}>
+                      <span className={`w-9 md:w-10 text-xs md:text-sm font-medium shrink-0 ${tText}`}>
                         {row.category}
                       </span>
-                      <div className="flex-1 min-w-0 flex flex-wrap justify-end items-center gap-x-2 md:gap-x-3 gap-y-1">
+                      <span className="hidden sm:flex items-center gap-2 md:gap-3 shrink-0">
                         <RelGanShishen gan={sameGan} shishen={row.shishens[0]} wuxing={target} />
                         <RelGanShishen gan={diffGan} shishen={row.shishens[1]} wuxing={target} />
+                      </span>
+                      <div className="flex-1 min-w-0 relative h-3.5 md:h-4 rounded bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div
+                          className={`absolute inset-y-0 left-0 ${barColor} transition-all`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <div className="w-12 md:w-14 shrink-0 text-right text-xs tabular-nums text-slate-600 dark:text-slate-400">
+                        {pct.toFixed(1)}%
+                      </div>
+                      <div className="hidden sm:block w-10 shrink-0 text-right text-[11px] tabular-nums text-slate-400 dark:text-slate-500">
+                        w {weight.toFixed(2)}
                       </div>
                     </div>
                   )
@@ -397,18 +409,6 @@ export function ElementsPanel() {
               </div>
             </div>
           )}
-
-          {/* 五行 */}
-          <div>
-            <div className="mb-2 text-[11px] tracking-[0.2em] font-medium text-slate-500 dark:text-slate-400">
-              五行 · 已计入合化 / 冲克 / 刑害 调整
-            </div>
-            <div className="space-y-2">
-              {wxBars.map((b) => (
-                <Bar key={b.wuxing} label={b.wuxing} pct={b.pct} weight={b.weight} wuxing={b.wuxing} category="wuxing" />
-              ))}
-            </div>
-          </div>
 
           {/* 十神 · 透干 */}
           {inGan.length > 0 && (
@@ -452,23 +452,34 @@ export function ElementsPanel() {
             </div>
           )}
 
-          {/* 影响明细 */}
+          {/* 影响明细 — 默认收起 */}
           {data.adjustments.length > 0 && (
             <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <div className="mb-2 text-[11px] tracking-[0.2em] font-medium text-slate-500 dark:text-slate-400">
-                合冲刑害 · 影响明细
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {data.adjustments.map((a, i) => (
-                  <div
-                    key={i}
-                    className={`text-xs px-2 py-1 rounded border ${ADJ_TONE[a.category]}`}
-                  >
-                    <span className="text-[10px] opacity-70 mr-1">[{a.source}·{a.category}]</span>
-                    {a.desc}
-                  </div>
-                ))}
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowAdj((v) => !v)}
+                aria-expanded={showAdj}
+                className="w-full flex items-center gap-2 text-left text-[11px] tracking-[0.2em] font-medium text-slate-500 dark:text-slate-400"
+              >
+                <span className={`text-[11px] inline-block transition-transform ${showAdj ? 'rotate-90' : ''}`}>▸</span>
+                <span>合冲刑害 · 影响明细</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-600 normal-case tracking-normal">
+                  {data.adjustments.length} 项 · 点击{showAdj ? '收起' : '展开'}
+                </span>
+              </button>
+              {showAdj && (
+                <div className="mt-2 flex flex-col gap-1.5">
+                  {data.adjustments.map((a, i) => (
+                    <div
+                      key={i}
+                      className={`text-xs px-2 py-1 rounded border ${ADJ_TONE[a.category]}`}
+                    >
+                      <span className="text-[10px] opacity-70 mr-1">[{a.source}·{a.category}]</span>
+                      {a.desc}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </>

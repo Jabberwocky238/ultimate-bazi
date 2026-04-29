@@ -90,12 +90,18 @@ export function Footer() {
         <a href="https://github.com/Jabberwocky238/bazi-skills" className={linkCls} target="_blank" rel="noreferrer">
           bazi-skills
         </a>
+        {' '}
+        <span className="text-slate-500 dark:text-slate-500 tabular-nums">
+          {__SKILLS_COMMIT__} · {__SKILLS_DATE__.slice(0, 10)}
+        </span>
       </span>
       <span>
         排盘计算 ·{' '}
         <a href="https://github.com/Jabberwocky238/bazi-engine" className={linkCls} target="_blank" rel="noreferrer">
           bazi-engine
         </a>
+        {' '}
+        <span className="text-slate-500 dark:text-slate-500 tabular-nums">v{__ENGINE_VERSION__}</span>
       </span>
       <span>
         本项目 ·{' '}
