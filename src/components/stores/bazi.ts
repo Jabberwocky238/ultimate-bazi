@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { Sex } from '@jabberwocky238/bazi-engine'
-import { HOUR_UNKNOWN, EMPTY_PILLAR, useBazi, type Bazi } from '@/lib'
-import { computeBazi, baziToPillars, equationOfTime } from './compute'
+import { HOUR_UNKNOWN, useBazi } from '@/lib'
+import { computeFromState } from './compute'
 import { computeDaYun, useDayun } from './dayun'
 
 /**
@@ -131,77 +131,19 @@ export const useBaziInput = create<BaziInputState>((set, get) => ({
 
 // ————————————————————————————————————————————————————————
 // 输入 → 输出 wiring。
+// 实际计算在 computeFromState (compute.ts) 中, 此处仅写入 store + 调大运。
 // ————————————————————————————————————————————————————————
 
-function fmtDate(y: number, m: number, d: number, h: number, mi: number): string {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${y}-${pad(m)}-${pad(d)} ${pad(h)}:${pad(mi)}`
-}
-
 function pushBazi(s: BaziInputState) {
-  if (s.mode === 'bazi') {
-    const valid = s.bazi.slice(0, 3).every((g) => g.length === 2)
-    if (!valid) return
-    const hourGz = s.bazi[3]
-    const hourKnown = hourGz.length === 2
-    try {
-      const fullBazi: Bazi = [
-        s.bazi[0],
-        s.bazi[1],
-        s.bazi[2],
-        hourKnown ? hourGz : '甲子', // 占位, 之后用 EMPTY_PILLAR 覆盖
-      ]
-      const pillars = baziToPillars(fullBazi, s.sex)
-      if (!hourKnown) pillars[3] = EMPTY_PILLAR
-      useBazi.getState().setBazi({
-        solarStr: '',
-        trueSolarStr: '',
-        lunarStr: `八字直输 ${s.bazi.filter((g) => g.length === 2).join(' ')}`,
-        pillars,
-        hourKnown,
-      })
-    } catch (e) {
-      console.warn('[bazi-mode] 解析失败:', e)
-      return
-    }
+  const r = computeFromState(s)
+  if (!r) return
+  useBazi.getState().setBazi(r.bazi)
+  if (r.effectiveDate) {
+    const { year, month, day, hour, minute } = r.effectiveDate
+    useDayun.getState().setDayun(computeDaYun(year, month, day, hour, minute, s.sex))
+  } else {
     useDayun.getState().setDayun(null)
-    return
   }
-
-  // gregorian / trueSolar / gregorianLong: 都走公历→引擎路径, 仅在 hour/minute 处差异
-  let { year, month, day, hour, minute } = s
-  let trueSolarStr = ''
-  let solarStr = ''
-  const hourKnown = hour !== HOUR_UNKNOWN && hour >= 0 && hour < 24
-
-  if (s.mode === 'gregorianLong' && hourKnown) {
-    // 公历 + 经度 → 真太阳时
-    const eot = equationOfTime(year, month, day)
-    const longShift = (s.longitude - 120) * 4
-    const total = Math.round(eot + longShift)
-    const d = new Date(year, month - 1, day, hour, minute, 0)
-    d.setMinutes(d.getMinutes() + total)
-    solarStr = fmtDate(year, month, day, hour, minute)
-    year = d.getFullYear()
-    month = d.getMonth() + 1
-    day = d.getDate()
-    hour = d.getHours()
-    minute = d.getMinutes()
-    trueSolarStr = fmtDate(year, month, day, hour, minute)
-  } else if (s.mode === 'trueSolar' && hourKnown) {
-    // 输入即真太阳时, 直接喂引擎, 不再做 EOT 修正
-    trueSolarStr = fmtDate(year, month, day, hour, minute)
-  }
-
-  const r = computeBazi(year, month, day, hour, minute, s.sex)
-  if (s.mode === 'gregorianLong' && solarStr) {
-    r.solarStr = `${solarStr} (公历)`
-    r.trueSolarStr = `${trueSolarStr} (真太阳时)`
-  } else if (s.mode === 'trueSolar' && trueSolarStr) {
-    r.trueSolarStr = `${trueSolarStr} (输入即真太阳时, 未再做均时差)`
-  }
-  useBazi.getState().setBazi(r)
-  useDayun.getState().setDayun(computeDaYun(year, month, day, hour, minute, s.sex))
 }
 
 pushBazi(useBaziInput.getState())

@@ -171,3 +171,103 @@ export function baziToPillars(bazi: Bazi, sex: Sex): Pillar[] {
     }
   })
 }
+
+// ————————————————————————————————————————————————————————
+// computeFromState — 输入 state (mode + dates / longitude / bazi / sex) 一站式
+// 返回 BaziResult; 大运由调用方按需另算 (本函数纯, 无 store 写入).
+// 主盘 pushBazi 与 合盘 共享此函数, 0 复刻.
+// ————————————————————————————————————————————————————————
+
+import type { BaziInputMode } from './bazi'
+
+export interface BaziInputData {
+  mode: BaziInputMode
+  year: number
+  month: number
+  day: number
+  hour: number
+  minute: number
+  longitude: number
+  bazi: [string, string, string, string]
+  sex: Sex
+}
+
+function fmtDate(y: number, m: number, d: number, h: number, mi: number): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${y}-${pad(m)}-${pad(d)} ${pad(h)}:${pad(mi)}`
+}
+
+/**
+ * 输入 state → BaziResult (含 mode-specific 显示标注 + 真太阳时调整后的有效日期).
+ * 同时返回经过修正的 (year, month, day, hour, minute) 用于调用方算大运 (主盘需要).
+ */
+export interface ComputedFromState {
+  bazi: BaziResult
+  /** 修正后的年月日时分 — 主盘用来算大运. 八字直输模式下为 null. */
+  effectiveDate: { year: number; month: number; day: number; hour: number; minute: number } | null
+}
+
+export function computeFromState(s: BaziInputData): ComputedFromState | null {
+  if (s.mode === 'bazi') {
+    const valid = s.bazi.slice(0, 3).every((g) => g.length === 2)
+    if (!valid) return null
+    const hourGz = s.bazi[3]
+    const hourKnown = hourGz.length === 2
+    try {
+      const fullBazi: Bazi = [
+        s.bazi[0], s.bazi[1], s.bazi[2],
+        hourKnown ? hourGz : '甲子',
+      ]
+      const pillars = baziToPillars(fullBazi, s.sex)
+      if (!hourKnown) pillars[3] = EMPTY_PILLAR
+      return {
+        bazi: {
+          solarStr: '',
+          trueSolarStr: '',
+          lunarStr: `八字直输 ${s.bazi.filter((g) => g.length === 2).join(' ')}`,
+          pillars,
+          hourKnown,
+        },
+        effectiveDate: null,
+      }
+    } catch (e) {
+      console.warn('[bazi-mode] 解析失败:', e)
+      return null
+    }
+  }
+
+  let { year, month, day, hour, minute } = s
+  let trueSolarStr = ''
+  let solarStr = ''
+  const hourKnown = hour !== HOUR_UNKNOWN && hour >= 0 && hour < 24
+
+  if (s.mode === 'gregorianLong' && hourKnown) {
+    const eot = equationOfTime(year, month, day)
+    const longShift = (s.longitude - 120) * 4
+    const total = Math.round(eot + longShift)
+    const d = new Date(year, month - 1, day, hour, minute, 0)
+    d.setMinutes(d.getMinutes() + total)
+    solarStr = fmtDate(year, month, day, hour, minute)
+    year = d.getFullYear()
+    month = d.getMonth() + 1
+    day = d.getDate()
+    hour = d.getHours()
+    minute = d.getMinutes()
+    trueSolarStr = fmtDate(year, month, day, hour, minute)
+  } else if (s.mode === 'trueSolar' && hourKnown) {
+    trueSolarStr = fmtDate(year, month, day, hour, minute)
+  }
+
+  const r = computeBazi(year, month, day, hour, minute, s.sex)
+  if (s.mode === 'gregorianLong' && solarStr) {
+    r.solarStr = `${solarStr} (公历)`
+    r.trueSolarStr = `${trueSolarStr} (真太阳时)`
+  } else if (s.mode === 'trueSolar' && trueSolarStr) {
+    r.trueSolarStr = `${trueSolarStr} (输入即真太阳时, 未再做均时差)`
+  }
+
+  return {
+    bazi: r,
+    effectiveDate: { year, month, day, hour, minute },
+  }
+}

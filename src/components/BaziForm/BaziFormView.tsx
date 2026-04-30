@@ -1,15 +1,39 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { HOUR_UNKNOWN } from '@/lib'
-import { useBaziInput, type BaziInputMode } from '@@/stores'
+import type { BaziInputMode } from '@@/stores'
+import type { BaziInputData } from '@@/stores/compute'
 import { inputCls, labelCls, primaryBtn } from '@@/css'
-import { SaveLoadControls } from '@@/SaveLoadControls'
+import { SaveLoadControls, applySavedEntry, type SavedEntry } from './SaveLoadControls'
 
-function isValidDate(y: number, m: number, d: number): boolean {
-  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return false
-  if (m < 1 || m > 12 || d < 1) return false
-  const dt = new Date(0, 0, 1)
-  dt.setFullYear(y, m - 1, d)
-  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d
+/**
+ * 通用 八字输入面板 — 4-tab UI (公历 / 真太阳时 / 公历+经度 / 八字直输).
+ *
+ * API 极简化:
+ *   - state: 当前完整 BaziInputData (主盘 ← useBaziInput, 合盘 ← useState)
+ *   - onChange: 唯一状态写入通道 — 任意 mode/字段/八字 改动都汇成 next 一次性 emit
+ *   - onSubmitted: 排盘按钮按下后触发 (主盘用于 syncToUrl)
+ *
+ *  整个流程的本质就是算八字: 输入 → state.bazi (4 干支) + sex 落定 → 后面交给 computeFromState.
+ */
+export interface BaziFormViewProps {
+  state: BaziInputData
+  onChange: (next: BaziInputData) => void
+  /** 排盘 / 加载 / mode 切换 之后触发 (主盘 syncToUrl, 合盘可省). */
+  onSubmitted?: () => void
+  /**
+   * 保存 / 加载 配置 — 提供则面板自动渲染保存/加载/清空 三个按钮 + 加载弹窗.
+   * storageKey 默认 'bazi.saved.v1' (主盘 / 合盘 共用一份命例库). presets 仅主盘传.
+   */
+  saveLoad?: {
+    storageKey?: string
+    presets?: SavedEntry[]
+    /** 紧凑按钮 (合盘场景). */
+    compact?: boolean
+  }
+  /** 额外尾部插槽 (在排盘按钮之后, 保存/加载之前). */
+  trailing?: ReactNode
+  /** 在表单首字段前插入 (合盘可放 姓名 输入). */
+  leading?: ReactNode
 }
 
 const TABS: { key: BaziInputMode; label: string }[] = [
@@ -19,23 +43,35 @@ const TABS: { key: BaziInputMode; label: string }[] = [
   { key: 'bazi',          label: '八字直输' },
 ]
 
-export function BaziForm() {
-  const mode = useBaziInput((s) => s.mode)
-  const year = useBaziInput((s) => s.year)
-  const month = useBaziInput((s) => s.month)
-  const day = useBaziInput((s) => s.day)
-  const hour = useBaziInput((s) => s.hour)
-  const minute = useBaziInput((s) => s.minute)
-  const longitude = useBaziInput((s) => s.longitude)
-  const bazi = useBaziInput((s) => s.bazi)
-  const sex = useBaziInput((s) => s.sex)
-  const setMode = useBaziInput((s) => s.setMode)
-  const setDate = useBaziInput((s) => s.setDate)
-  const setLongitude = useBaziInput((s) => s.setLongitude)
-  const setBaziGz = useBaziInput((s) => s.setBaziGz)
-  const syncToUrl = useBaziInput((s) => s.syncToUrl)
+function isValidDate(y: number, m: number, d: number): boolean {
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return false
+  if (m < 1 || m > 12 || d < 1) return false
+  const dt = new Date(0, 0, 1)
+  dt.setFullYear(y, m - 1, d)
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d
+}
 
+export function BaziFormView({
+  state, onChange, onSubmitted, saveLoad, trailing, leading,
+}: BaziFormViewProps) {
+  const { mode, year, month, day, hour, minute, longitude, bazi, sex } = state
   const [hourUnknown, setHourUnknown] = useState(hour === HOUR_UNKNOWN)
+
+  const setMode = (m: BaziInputMode) => onChange({ ...state, mode: m })
+
+  const saveLoadEl = saveLoad ? (
+    <SaveLoadControls
+      current={state}
+      onLoad={(e) => {
+        const next = applySavedEntry(state, e)
+        onChange(next)
+        onSubmitted?.()
+      }}
+      storageKey={saveLoad.storageKey}
+      presets={saveLoad.presets}
+      compact={saveLoad.compact}
+    />
+  ) : null
 
   const onSubmitGregorianLike = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -47,18 +83,18 @@ export function BaziForm() {
       alert(`参数有误：${y} 年 ${m} 月没有第 ${d} 天`)
       return
     }
-    setDate({
+    const nextHour = hourUnknown ? HOUR_UNKNOWN : Number(f.get('hour'))
+    onChange({
+      ...state,
       year: y,
       month: m,
       day: d,
-      hour: hourUnknown ? HOUR_UNKNOWN : Number(f.get('hour')),
+      hour: nextHour,
       minute: hourUnknown ? 0 : Number(f.get('minute')),
+      longitude: mode === 'gregorianLong' ? Number(f.get('lng')) : state.longitude,
       sex: Number(f.get('sex')) === 0 ? 0 : 1,
     })
-    if (mode === 'gregorianLong') {
-      setLongitude(Number(f.get('lng')))
-    }
-    syncToUrl()
+    onSubmitted?.()
   }
 
   const onSubmitBazi = (e: React.FormEvent<HTMLFormElement>) => {
@@ -75,8 +111,8 @@ export function BaziForm() {
       return
     }
     const sx = Number(f.get('sex')) === 0 ? 0 : 1
-    setBaziGz([y, m, d, h], sx)
-    syncToUrl()
+    onChange({ ...state, bazi: [y, m, d, h], sex: sx })
+    onSubmitted?.()
   }
 
   const hourInputValue = hour === HOUR_UNKNOWN ? 0 : hour
@@ -110,8 +146,9 @@ export function BaziForm() {
         <form
           key={`bazi-${bazi.join('|')}-${sex}`}
           onSubmit={onSubmitBazi}
-          className="flex flex-wrap items-end gap-3 p-4 md:p-5"
+          className="flex flex-wrap items-end p-4 md:p-5"
         >
+          {leading}
           <label className={labelCls}>年柱<input name="bazi-y" defaultValue={bazi[0]} placeholder="甲子" maxLength={2} className={inputCls + ' w-16 md:w-20 text-center'} /></label>
           <label className={labelCls}>月柱<input name="bazi-m" defaultValue={bazi[1]} placeholder="甲子" maxLength={2} className={inputCls + ' w-16 md:w-20 text-center'} /></label>
           <label className={labelCls}>日柱<input name="bazi-d" defaultValue={bazi[2]} placeholder="甲子" maxLength={2} className={inputCls + ' w-16 md:w-20 text-center'} /></label>
@@ -124,7 +161,8 @@ export function BaziForm() {
             </select>
           </label>
           <button type="submit" className={primaryBtn}>排盘</button>
-          <SaveLoadControls />
+          {trailing}
+          {saveLoadEl}
           <span className="w-full text-[10px] text-slate-400 dark:text-slate-600 leading-relaxed">
             八字直输模式: 跳过公历/农历计算, 直接由 4 干支推十神 / 神煞 / 格局; 大运不可计算 (无日期)。
           </span>
@@ -133,8 +171,9 @@ export function BaziForm() {
         <form
           key={`${mode}-${year}-${month}-${day}-${hour}-${minute}-${longitude}-${sex}`}
           onSubmit={onSubmitGregorianLike}
-          className="flex flex-wrap items-end gap-3 p-4 md:p-5"
+          className="flex flex-wrap items-end p-4 md:p-5"
         >
+          {leading}
           <label className={labelCls}>年<input name="year" type="number" defaultValue={year} className={inputCls} /></label>
           <label className={labelCls}>月<input name="month" type="number" min={1} max={12} defaultValue={month} className={inputCls} /></label>
           <label className={labelCls}>日<input name="day" type="number" min={1} max={31} defaultValue={day} className={inputCls} /></label>
@@ -193,7 +232,8 @@ export function BaziForm() {
             </select>
           </label>
           <button type="submit" className={primaryBtn}>排盘</button>
-          <SaveLoadControls />
+          {trailing}
+          {saveLoadEl}
           {mode === 'trueSolar' && (
             <span className="w-full text-[10px] text-slate-400 dark:text-slate-600 leading-relaxed">
               真太阳时模式: 输入视作已修正的真太阳时, 时柱按输入时辰直接划分, 不再做均时差/经度修正。
