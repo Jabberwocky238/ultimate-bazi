@@ -23,11 +23,17 @@ export function isJiaSeGe(): GejuHit | null {
   const extras = readExtras()
   if (bazi.dayWx !== '土') return null
   if (!['辰', '戌', '丑', '未'].includes(bazi.monthZhi)) return null
-  // 稼穑特例: 印=火 与"土一气"性质相反, 须 天干土本身 ≥ 2 (含日主) 方为"一气遍布"。
-  // _check 通用条件 3 含印放宽, 在此为稼穑收紧, 不动 _check。
+  // 稼穑特例: 印=火 与"土一气"性质相反, 不计入条件 3 (在此对稼穑额外收紧)。
+  // 库支占位 ≥ 3 时, 若 distinct 库 ≥ 3 (三库见层次足) 则 干土 ≥ 2 已够;
+  // 若 distinct 库 < 3 (重复库, 层次薄) 则需 干土 ≥ 3 以"一气遍布"补足。
+  const SI_KU = new Set(['辰', '戌', '丑', '未'])
+  const baseDistinctKu = new Set(
+    bazi.mainArr.map((p) => p.zhi as string).filter((z) => SI_KU.has(z)),
+  ).size
+  const requireTuGan = baseDistinctKu < 3 ? 3 : 2
   const baseTuGan = bazi.ganWxCount('土')
   const allTuGan = baseTuGan + extras.extraGanWxCount('土')
-  if (baseTuGan < 2 && allTuGan < 2) return null
+  if (baseTuGan < requireTuGan && allTuGan < requireTuGan) return null
   const r = checkZhuanWang('土', 1)
   if (!r) return null
 

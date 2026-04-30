@@ -83,13 +83,15 @@ export function checkZhuanWang(
   let base2 = false
   let ext2 = false
   if (selfWx === '土') {
-    // md: "辰戌丑未四库全见或三见" — ≥3 即可。
-    const baseN = SI_KU.filter((z) => mainZhis.includes(z)).length
-    const allN = SI_KU.filter((z) => allZhis.includes(z)).length
+    // md: "辰戌丑未四库全见或三见" — 按 地支位数 计 (重复也算, 一气遍布优先).
+    // 例 己日 未未辰酉 (3 个库位即为"三见"); 全见 = 不重复 4 库齐。
+    const baseN = mainZhis.filter((z) => (SI_KU as readonly Zhi[]).includes(z)).length
+    const baseDistinct = SI_KU.filter((z) => mainZhis.includes(z)).length
+    const allN = allZhis.filter((z) => (SI_KU as readonly Zhi[]).includes(z)).length
     base2 = baseN >= 3
     ext2 = allN >= 3
-    if (base2) baseLayout = baseN === 4 ? '四库齐' : '三库见'
-    else if (ext2) extraLayout = '岁运补四库'
+    if (base2) baseLayout = baseDistinct === 4 ? '四库齐' : `三库见 (${baseN}位)`
+    else if (ext2) extraLayout = '岁运补三库'
   } else {
     const sh = SANHE_TRIPLES[selfWx]
     const hh = SANHUI_TRIPLES[selfWx]
