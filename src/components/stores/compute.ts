@@ -1,6 +1,6 @@
 /**
- * 八字基础计算：公历→四柱（computeBazi）与干支→四柱（baziToPillars）。
- * 含真太阳时均时差修正小工具。无 store 依赖，纯函数。
+ * 公历 → 八字 与 干支 → 八字 的计算逻辑。lib/ 只关心 (Pillar, Sex);
+ * 涉及公历 / 农历 / 真太阳时 的所有日历换算放在 stores 这层。
  */
 import { Solar } from 'lunar-typescript'
 import {
@@ -18,16 +18,18 @@ import {
   type Shishen,
   type WuXing,
 } from '@jabberwocky238/bazi-engine'
-import type { Pillar, PillarType, BaziResult } from './store'
 import {
   HOUR_UNKNOWN,
   EMPTY_PILLAR,
   shishenWuxing,
   type Bazi,
-} from './shared'
+  type Pillar,
+  type PillarType,
+  type BaziResult,
+} from '@/lib'
 
 // ————————————————————————————————————————————————————————
-// 真太阳时均时差修正 (按 120°E，不含经度修正)
+// 真太阳时均时差修正 (按 120°E, 不含经度修正)
 // ————————————————————————————————————————————————————————
 
 function dayOfYear(year: number, month: number, day: number): number {
@@ -36,7 +38,8 @@ function dayOfYear(year: number, month: number, day: number): number {
   return Math.floor((d - start) / 86400000) + 1
 }
 
-function equationOfTime(year: number, month: number, day: number): number {
+/** 均时差(分钟). 公历→真太阳时使用. 仅靠太阳轨道, 不含经度修正. */
+export function equationOfTime(year: number, month: number, day: number): number {
   const n = dayOfYear(year, month, day)
   const B = (2 * Math.PI * (n - 81)) / 365
   return 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B)
@@ -55,7 +58,7 @@ function formatTrueSolar(year: number, month: number, day: number, hour: number,
 }
 
 // ————————————————————————————————————————————————————————
-// computeBazi —— 公历 + 性别 → 四柱
+// computeBazi —— 公历 + 性别 → BaziResult
 // ————————————————————————————————————————————————————————
 
 export function computeBazi(
@@ -72,7 +75,7 @@ export function computeBazi(
   const solar = Solar.fromYmdHms(year, month, day, safeHour, safeMinute, 0)
   const lunar = solar.getLunar()
   const ec = lunar.getEightChar()
-  // sect=1：23:00 即换日（早子换日派）
+  // sect=1: 23:00 即换日 (早子换日派)
   ec.setSect(1)
 
   const yearP:  EnginePillar = { gan: ec.getYearGan() as Gan,  zhi: ec.getYearZhi()  as Zhi }
@@ -130,9 +133,8 @@ export function computeBazi(
 }
 
 // ————————————————————————————————————————————————————————
-// baziToPillars —— 直接由四柱干支构造 Pillar[]，跳过公历/农历计算。
-// 用于测试或已知八字直接喂 detector 等场景；神煞依赖四柱干支 + 性别，
-// 不依赖具体日期。
+// baziToPillars —— 直接由 4 干支构造 Pillar[]; 跳过公历/农历计算。
+// 神煞依赖四柱干支 + 性别, 不依赖具体日期。
 // ————————————————————————————————————————————————————————
 
 const PILLAR_LABELS: PillarType[] = ['年柱', '月柱', '日柱', '时柱']

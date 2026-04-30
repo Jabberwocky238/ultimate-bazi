@@ -108,6 +108,10 @@ export function Footer() {
         <a href="https://github.com/Jabberwocky238/ultimate-bazi" className={linkCls} target="_blank" rel="noreferrer">
           ultimate-bazi
         </a>
+        {' '}
+        <span className="text-slate-500 dark:text-slate-500 tabular-nums">
+          {__APP_COMMIT__} · 构建于 {__APP_BUILD_TIME__}
+        </span>
       </span>
     </footer>
   )

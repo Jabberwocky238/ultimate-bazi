@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useBazi } from '@/lib'
 import { BaziForm } from '@@/BaziForm'
 import { BaziMeta } from '@@/BaziMeta'
@@ -13,22 +14,37 @@ import { XiyongPanel } from '@@/XiyongPanel'
 import { GanZhiPanel } from '@@/GanZhiPanel'
 import { Footer } from '@@/Footer'
 import { ErrorBoundary } from '@@/ErrorBoundary'
+import { DisclaimerDialog } from '@@/DisclaimerDialog'
 
 function App() {
   const solarStr = useBazi((s) => s.solarStr)
   const trueSolarStr = useBazi((s) => s.trueSolarStr)
   const lunarStr = useBazi((s) => s.lunarStr)
   const pillars = useBazi((s) => s.pillars)
+  const [disclaimerOpen, setDisclaimerOpen] = useState(false)
 
   return (
     <ErrorBoundary name="App">
       <main className="mx-auto max-w-7xl px-3 md:px-6 pt-5 md:pt-10 pb-10 md:pb-16">
         <header className="mb-5 md:mb-6">
-          <h1 className="text-2xl md:text-4xl font-bold tracking-tight">八字排盘</h1>
-          <p className="mt-1 text-xs md:text-sm text-slate-500 dark:text-slate-400">
-            公历出生时间 → 四柱、十神、神煞 · 点击任意词条查看释义
-          </p>
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <h1 className="text-2xl md:text-4xl font-bold tracking-tight">八字排盘</h1>
+            <span className="text-[11px] md:text-xs text-slate-400 dark:text-slate-600 tabular-nums">
+              版本为 {__APP_BUILD_TIME__.slice(0, 10)}
+            </span>
+          </div>
+          <div className="mt-1 flex items-baseline justify-between gap-3 w-full text-xs md:text-sm text-slate-500 dark:text-slate-400">
+            <span>点击任意词条查看释义</span>
+            <button
+              type="button"
+              onClick={() => setDisclaimerOpen(true)}
+              className="text-[10px] md:text-[11px] text-slate-400 dark:text-slate-600 hover:text-amber-700 dark:hover:text-amber-400 underline decoration-dotted underline-offset-2"
+            >
+              免责声明
+            </button>
+          </div>
         </header>
+        <DisclaimerDialog open={disclaimerOpen} onClose={() => setDisclaimerOpen(false)} />
 
         <div className="grid gap-5 md:gap-6 md:grid-cols-[minmax(0,6fr)_minmax(0,4fr)]">
           <section className="min-w-0">

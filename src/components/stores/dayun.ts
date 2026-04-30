@@ -1,23 +1,26 @@
+/**
+ * 大运 / 流年 / 流月 DTO + zustand store。所有公历/历法转换在这里, lib 不参与。
+ */
 import { create } from 'zustand'
 import {
   computeDaYun as engineComputeDaYun,
   type Sex,
 } from '@jabberwocky238/bazi-engine'
-import { HOUR_UNKNOWN } from './shared'
+import { HOUR_UNKNOWN } from '@/lib'
 
 export interface DaYunStep {
-  /** lunar-typescript 的原始 index;0 表示起运前 */
+  /** lunar-typescript 的原始 index; 0 表示起运前 */
   index: number
   startAge: number
   endAge: number
   startYear: number
   endYear: number
-  /** 干支,如 "甲子";起运前可能为空串 */
+  /** 干支, 如 "甲子"; 起运前可能为空串 */
   gz: string
 }
 
 export interface LiuYueEntry {
-  /** 月建中文名:正/二/…/腊。 */
+  /** 月建中文名: 正/二/…/腊。 */
   monthName: string
   /** 干支字符串。 */
   gz: string
@@ -36,9 +39,9 @@ export interface DaYunData {
   startYear: number
   startMonth: number
   startDay: number
-  /** 十步大运（含起运前） */
+  /** 十步大运 (含起运前) */
   steps: DaYunStep[]
-  /** liunian[stepIndex] = 对应大运内的 10 流年 */
+  /** liunian[stepIndex] = 对应大运内的流年 */
   liunian: LiuNianEntry[][]
 }
 
@@ -88,11 +91,6 @@ export function computeDaYun(
     return null
   }
 }
-
-// ————————————————————————————————————————————————————————
-// useDayun — 大运 store。setDayun(data) 由调用方 (输入监听) 写入。
-// 不直接订阅 useBazi,因为大运需要原始日期/性别而不是 pillars。
-// ————————————————————————————————————————————————————————
 
 interface DaYunStore {
   data: DaYunData | null

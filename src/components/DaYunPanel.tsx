@@ -11,13 +11,17 @@ import {
   HOUR_UNKNOWN,
   shishenWuxing,
   useBazi,
+} from '@/lib'
+import { WUXING_TEXT, WUXING_BORDER, WUXING_FROM } from '@@/css'
+import {
+  useBaziStore,
+  useBaziInput,
   useDayun,
+  type ExtraPillar,
   type DaYunStep,
   type LiuNianEntry,
   type LiuYueEntry,
-} from '@/lib'
-import { WUXING_TEXT, WUXING_BORDER, WUXING_FROM } from '@@/css'
-import { useBaziStore, useBaziInput, type ExtraPillar } from '@@/stores'
+} from '@@/stores'
 
 interface GzCell {
   gan: string
@@ -265,15 +269,21 @@ function DaYunCard({
   step, active, onClick,
 }: { step: DaYunStepView; active: boolean; onClick: () => void }) {
   const c = step.cell
+  // 起运前 (无干支) 的 block 不允许点击
+  const disabled = !c
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      aria-disabled={disabled}
       className={[
         'shrink-0 w-[5.5rem] md:w-24 rounded-lg border px-2 py-2 text-center transition',
-        active
-          ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30'
-          : 'border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 hover:border-amber-500',
+        disabled
+          ? 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 opacity-60 cursor-not-allowed'
+          : active
+            ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30'
+            : 'border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 hover:border-amber-500 cursor-pointer',
         c ? `border-t-2 ${WUXING_BORDER[c.ganWx] ?? ''}` : '',
         c ? `bg-gradient-to-b to-transparent ${WUXING_FROM[c.ganWx] ?? ''}` : '',
       ].join(' ')}

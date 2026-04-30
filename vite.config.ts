@@ -27,13 +27,22 @@ const SKILLS_DIR = path.join(root, 'public/bazi-skills')
 const ENGINE_VERSION = readEngineVersion()
 const SKILLS_COMMIT  = gitField(SKILLS_DIR, '%h')
 const SKILLS_DATE    = gitField(SKILLS_DIR, '%cI')
+const APP_COMMIT     = gitField(root, '%h')
+function buildTime(): string {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+const APP_BUILD_TIME = buildTime()
 
 // https://vite.dev/config/
 export default defineConfig({
   define: {
-    __ENGINE_VERSION__: JSON.stringify(ENGINE_VERSION),
-    __SKILLS_COMMIT__:  JSON.stringify(SKILLS_COMMIT),
-    __SKILLS_DATE__:    JSON.stringify(SKILLS_DATE),
+    __ENGINE_VERSION__:  JSON.stringify(ENGINE_VERSION),
+    __SKILLS_COMMIT__:   JSON.stringify(SKILLS_COMMIT),
+    __SKILLS_DATE__:     JSON.stringify(SKILLS_DATE),
+    __APP_COMMIT__:      JSON.stringify(APP_COMMIT),
+    __APP_BUILD_TIME__:  JSON.stringify(APP_BUILD_TIME),
   },
   resolve: {
     alias: {
