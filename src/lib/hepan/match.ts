@@ -36,7 +36,7 @@ export function wxSupply(provider: Pillar[], target: WuXing): number {
   return wxDistribution(provider)[target] ?? 0
 }
 
-/** 双向用神供给 / 调候补足 / 忌神冲撞 + 跨盘干支 finding 数据. */
+/** 双向用神供给 / 调候补足 / 通关桥梁 / 忌神冲撞 + 跨盘干支 finding 数据. */
 export interface XiyongMatch {
   /** A 喜用 B 提供位数 */
   aPrimaryFromB: number
@@ -49,6 +49,9 @@ export interface XiyongMatch {
   /** A 调候用神 B 提供位数 (仅 A 调候硬约束才有意义) */
   aTiaohouFromB: number
   bTiaohouFromA: number
+  /** A 通关桥梁 B 提供位数 (仅 A 两强相战且本盘缺桥才有意义) */
+  aTongguanFromB: number
+  bTongguanFromA: number
   /** 跨盘干支 finding 总数 (合冲刑害破暗合克均对称, 用单向 count 即可). */
   crossHe: number
   crossChong: number
@@ -78,6 +81,11 @@ export function computeXiyongMatch(
     bAvoidFromA:     sumAvoid(aPillars, bXy?.avoidWx ?? []),
     aTiaohouFromB:   aXy?.tiaohou.required ? safeSupply(bPillars, aXy.tiaohou.wx) : 0,
     bTiaohouFromA:   bXy?.tiaohou.required ? safeSupply(aPillars, bXy.tiaohou.wx) : 0,
+    // 通关: 仅 self 两强相战且本盘缺桥时, 才看对方是否能提供桥梁五行
+    aTongguanFromB:  aXy?.tongguan.active && !aXy.tongguan.bridgePresent
+                       ? safeSupply(bPillars, aXy.tongguan.bridgeWx) : 0,
+    bTongguanFromA:  bXy?.tongguan.active && !bXy.tongguan.bridgePresent
+                       ? safeSupply(aPillars, bXy.tongguan.bridgeWx) : 0,
     crossHe:        all?.he.length ?? 0,
     crossChong:     all?.chong.length ?? 0,
     crossXinghaipo: all?.xinghaipo.length ?? 0,
@@ -87,13 +95,14 @@ export function computeXiyongMatch(
 
 /**
  * 综合评分 — 两边各自给出 0-100 的"对方对自己的喜用程度":
- *   a = B 对 A 的 喜用程度 (B 给 A 供用神 + 调候 - A 忌神 + 跨盘合冲)
+ *   a = B 对 A 的 喜用程度 (B 给 A 供用神 + 调候 + 通关 - A 忌神 + 跨盘合冲)
  *   b = A 对 B 的 喜用程度 (反向)
  *
  *  公式 (单边):
  *   50 (基线)
  *   + 主用神 ×12 + 喜神 ×6        (对方提供我所需)
  *   + 调候 ×8                     (对方提供我硬约束)
+ *   + 通关桥梁 ×7                 (对方提供我两强相战的桥梁五行)
  *   - 忌神 ×4                     (对方带来我忌讳)
  *   + 跨盘合 ×3 - 冲 ×4 - 刑害破 ×2 - 克 ×3   (干支互动, 双方共享)
  *   clamp(0, 100)
@@ -110,11 +119,13 @@ export function scoreMatch(m: XiyongMatch): MatchScore {
   const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)))
   const a = clamp(
     50 + m.aPrimaryFromB * 12 + m.aSecondaryFromB * 6
-       + m.aTiaohouFromB * 8 - m.aAvoidFromB * 4 + ganZhi,
+       + m.aTiaohouFromB * 8 + m.aTongguanFromB * 7
+       - m.aAvoidFromB * 4 + ganZhi,
   )
   const b = clamp(
     50 + m.bPrimaryFromA * 12 + m.bSecondaryFromA * 6
-       + m.bTiaohouFromA * 8 - m.bAvoidFromA * 4 + ganZhi,
+       + m.bTiaohouFromA * 8 + m.bTongguanFromA * 7
+       - m.bAvoidFromA * 4 + ganZhi,
   )
   return { a, b }
 }

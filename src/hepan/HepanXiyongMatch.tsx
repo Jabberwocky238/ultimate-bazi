@@ -134,14 +134,43 @@ export function HepanXiyongMatch({ a, b, aName, bName }: Props) {
             )
           })()}
 
-          {(aSide.xiyong.tongguan.active || bSide.xiyong.tongguan.active) && (
-            <Detail label="通关 (两强相战)">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <TongguanCard name={aName} side={aSide} />
-                <TongguanCard name={bName} side={bSide} />
-              </div>
-            </Detail>
-          )}
+          {(() => {
+            // —— 通关段: 先列谁有两强相战; 再列跨盘谁通关谁 (有提供桥梁才显示).
+            const aActive = aSide.xiyong.tongguan.active
+            const bActive = bSide.xiyong.tongguan.active
+            if (!aActive && !bActive) return null
+
+            const aCross = renderCrossTongguan(aName, aSide, bName, b)
+            const bCross = renderCrossTongguan(bName, bSide, aName, a)
+            const hasCross = !!(aCross || bCross)
+
+            return (
+              <Detail label="通关 (两强相战)">
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-[10px] tracking-wider font-medium text-slate-400 dark:text-slate-500 mb-1.5">
+                      ① 自身两强相战
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {aActive && <TongguanCard name={aName} side={aSide} />}
+                      {bActive && <TongguanCard name={bName} side={bSide} />}
+                    </div>
+                  </div>
+                  {hasCross && (
+                    <div>
+                      <div className="text-[10px] tracking-wider font-medium text-slate-400 dark:text-slate-500 mb-1.5">
+                        ② 跨盘通关
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {aCross}
+                        {bCross}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Detail>
+            )
+          })()}
 
           <Detail label="干支作用 · 盖头 / 截脚 / 覆载">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -195,7 +224,7 @@ export function HepanXiyongMatch({ a, b, aName, bName }: Props) {
           <p className="text-[10px] text-slate-400 dark:text-slate-600 leading-relaxed pt-2 border-t border-slate-100 dark:border-slate-800">
             头部 <b>x/y</b>: x = {bName} 对 {aName} 喜用程度, y = {aName} 对 {bName} 喜用程度. 双方各自 0-100, 不互通.
             <br />
-            单边公式 = 50 + 主用 ×12 + 喜神 ×6 + 调候 ×8 - 忌神 ×4
+            单边公式 = 50 + 主用 ×12 + 喜神 ×6 + 调候 ×8 + 通关 ×7 - 忌神 ×4
             {' '}+ 跨盘合 ×3 - 冲 ×4 - 刑害破 ×2 - 克 ×3 (跨盘项双方共享).
           </p>
         </div>
@@ -340,6 +369,38 @@ function TiaohouNeedCard({ name, side }: { name: string; side: SideAnalysis }) {
  * 跨盘调候: 如果 self 调候硬约束 + 需要某五行, 且 other 提供该五行 ≥ 1 位,
  *  → 显示 "otherName 调候 selfName"; 否则返回 null (单方向检查, 不假设互为).
  */
+function renderCrossTongguan(
+  selfName: string, self: SideAnalysis,
+  otherName: string, other: Pillar[],
+): React.ReactNode | null {
+  const tg = self.xiyong.tongguan
+  // self 两强相战 + 本盘缺桥 + other 提供桥梁 才显示
+  if (!tg.active || tg.bridgePresent || !tg.bridgeWx) return null
+  const supplyN = wxSupply(other, tg.bridgeWx)
+  if (supplyN === 0) return null
+  return (
+    <div
+      key={`${otherName}-通关-${selfName}`}
+      className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-xs leading-relaxed"
+    >
+      <div className="flex items-baseline gap-2 mb-0.5">
+        <span className="font-medium text-slate-800 dark:text-slate-200">
+          {otherName} 通关 {selfName}
+        </span>
+        {tg.a && <WxBadge wx={tg.a} />}
+        <span className="text-slate-400">↔</span>
+        {tg.b && <WxBadge wx={tg.b} />}
+        <span className="text-slate-400 mx-1">桥</span>
+        <WxBadge wx={tg.bridgeWx} />
+        <span className="ml-auto text-[10px] tabular-nums text-emerald-700 dark:text-emerald-400">
+          {supplyN} 位
+        </span>
+      </div>
+      <div className="text-[11px] text-slate-600 dark:text-slate-400">{tg.note}</div>
+    </div>
+  )
+}
+
 function renderCrossTiaohou(
   selfName: string, self: SideAnalysis,
   otherName: string, other: Pillar[],
