@@ -28,10 +28,9 @@ const ENGINE_VERSION = readEngineVersion()
 const SKILLS_COMMIT  = gitField(SKILLS_DIR, '%h')
 const SKILLS_DATE    = gitField(SKILLS_DIR, '%cI')
 const APP_COMMIT     = gitField(root, '%h')
+/** ISO 8601 (UTC) — 客户端按 hostname 选时区现场格式化。 */
 function buildTime(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return new Date().toISOString()
 }
 const APP_BUILD_TIME = buildTime()
 

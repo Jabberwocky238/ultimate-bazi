@@ -1,27 +1,54 @@
-import { readShishen } from '../../hooks'
+import { readExtras, readShishen } from '../../hooks'
 import type { GejuHit } from '../../types'
+import { emitGeju } from '../../_emit'
 
 /**
- * 劫财见财 — 实际判据 (与 md 5 条 + 2 救应对照, 完整覆盖)：
- *  ① 劫财透干且通根 (md 条件 1 "劫财透 + 通根")。
- *  ② 财类透干 (md 条件 2 "财能被克到", 此处不强求紧贴)。
- *  ③ 比劫总数 > 财总数 (md 条件 3 "财轻劫重")。
- *  ④ 无官杀透 (md 条件 4 "官星护财" 救应不成立)。
- *  ⑤ 无食伤透 (md 条件 5 "食伤通关" 救应不成立)。
+ * 劫财见财 (病象) — 比劫强而财弱, 无官护无食伤通关.
  *
- * 【岁运】md 内容.md "流年引入构成临时劫财见财 / 原局无官无食伤+大运再走比劫":
- *   - 主局财旺 + 流年比劫透 → 临时劫财见财, 那一年易破财 (suiyunTrigger)。
- *   - 主局已劫财见财 + 岁运再补比劫 → 爆发年 (破财 / 婚变 / 合伙裂)。
- *   - 主局无官无食伤 + 大运再走比劫 → 破财爆发年。
- *   当前 detector 仅扫主柱, 未叠加岁运临时引入。
+ * bazi-skills 5 条 (《滴天髓·顺逆》《滴天髓·财》《渊海子平·论财》《子平真诠·论财》):
+ *  1. 劫财透干通根 OR 月令本气比劫              [可被岁运补: 岁运透劫财 → 临时劫财见财]
+ *  2. 财星透干或本气, 能被克到                  [岁运透财 → 也可触发 (财大运被夺)]
+ *  3. 财弱于比劫 (财轻劫重)                     [岁运透比劫加重]
+ *  4. 无官星护财                                 [岁运透官 → 救应 → withExtrasFormed=false (退出病格)]
+ *  5. 无食伤通关                                 [岁运透食伤 → 救应 → withExtrasFormed=false]
+ *
+ *  本 detector: 1、2、3 主局严判 + 岁运补 (Trigger 路径); 4、5 主局严判 + 岁运
+ *  透官 / 食伤 → 视为"救应"使病象消解 (withExtrasFormed=false → 显+Break,
+ *  UI 上由 Break 红框提示该病已被岁运化解)。
  */
 export function isJieCaiJianCai(): GejuHit | null {
   const shishen = readShishen()
-  if (!shishen.tou('劫财')) return null
-  if (!shishen.zang('劫财')) return null
-  if (!shishen.touCat('财')) return null
-  if (shishen.countCat('比劫') <= shishen.countCat('财')) return null
-  if (shishen.touCat('官杀')) return null
-  if (shishen.touCat('食伤')) return null
-  return { name: '劫财见财', note: '劫财透根 · 财弱无官食救 · 夺财' }
+  const extras = readExtras()
+
+  // —— 条件 1: 劫财显 (透+通根) ——
+  const baseStruct1 = shishen.tou('劫财') && shishen.zang('劫财')
+  const extStruct1 = baseStruct1 || (extras.tou('劫财') && shishen.has('劫财'))
+
+  // —— 条件 2: 财显 ——
+  const baseStruct2 = shishen.touCat('财')
+  const extStruct2 = baseStruct2 || extras.touCat('财')
+
+  // —— 条件 3: 财轻劫重 ——
+  const baseBijieN = shishen.countCat('比劫')
+  const baseCaiN = shishen.countCat('财')
+  const extraBijieAdd = extras.extraArr.filter(
+    (p) => p.shishen === '比肩' || p.shishen === '劫财',
+  ).length
+  const extraCaiAdd = extras.extraArr.filter(
+    (p) => p.shishen === '正财' || p.shishen === '偏财',
+  ).length
+  const baseStruct3 = baseBijieN > baseCaiN
+  const extStruct3 = (baseBijieN + extraBijieAdd) > (baseCaiN + extraCaiAdd)
+
+  // —— 条件 4 / 5: 主局无官 / 无食伤 (本病象成立的反面是"被救") ——
+  const baseClean = !shishen.touCat('官杀') && !shishen.touCat('食伤')
+  const extClean = baseClean && !extras.touCat('官杀') && !extras.touCat('食伤')
+
+  const baseFormed = baseStruct1 && baseStruct2 && baseStruct3 && baseClean
+  const withExtrasFormed = extStruct1 && extStruct2 && extStruct3 && extClean
+
+  return emitGeju(
+    { name: '劫财见财', note: '劫财透根 · 财弱无官食救 · 夺财' },
+    { baseFormed, withExtrasFormed, hasExtras: extras.active },
+  )
 }
