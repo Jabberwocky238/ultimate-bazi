@@ -29,11 +29,10 @@ import { SkillLink } from '@@/SkillLink'
 //   未引化      同色 30 透明 + 同色 5 底色 (仅岁运潜在格)
 //   岁运破格    border-red-500     + bg-red-500/15 (覆盖以上)
 //
-// 引化判定:
-//   原局成格 (!suiyunSpecific) 一律视为已引化。
-//   岁运格 (suiyunSpecific): suiyunDefaultTrigger 或 suiyunTrigger 视为已引化;
-//     否则属潜在 / 未引化, 同色淡显。
-//   suiyunBreak / suiyunConquer 直接覆盖为破格红, 不论引化态。
+// 引化判定 (新结构 GejuHit.岁运 + GejuHit.显隐):
+//   显隐 = '显' → 已引化 (原局成格 / 岁运 DefaultTrigger / 岁运 Trigger)。
+//   显隐 = '隐' → 仅潜在 (isSuiyun 而无 DefaultTrigger / Trigger 撑起), 同色淡显。
+//   岁运.Break / 岁运.Conquer 直接覆盖为破格红, 不论显隐。
 const FORMED_BORDER: Record<GejuQuality, string> = {
   good: 'border-emerald-500 bg-emerald-500/10 [--glow-color:#10b981]',
   bad: 'border-rose-500 bg-rose-500/10 [--glow-color:#f43f5e]',
@@ -45,14 +44,13 @@ const UNFORMED_BORDER: Record<GejuQuality, string> = {
   neutral: 'border-slate-400/30 bg-slate-400/5 [--glow-color:#94a3b8]',
 }
 
-/** 岁运格是否已被引化激活 (默认成格 / 主局缺一环靠岁运补足)。 */
+/** 岁运格是否已被引化激活 (默认 undefined = 显)。 */
 function isFormed(h: GejuOutput): boolean {
-  if (!h.suiyunSpecific) return true
-  return !!(h.suiyunDefaultTrigger || h.suiyunTrigger)
+  return (h.显隐 ?? '显') === '显'
 }
 
 function hitBorderClass(h: GejuOutput): string {
-  if (h.suiyunBreak || h.suiyunConquer)
+  if (h.岁运?.Break || h.岁运?.Conquer)
     return 'border-red-500 bg-red-500/15 [--glow-color:#ef4444]'
   return (isFormed(h) ? FORMED_BORDER : UNFORMED_BORDER)[h.quality]
 }
@@ -184,9 +182,9 @@ export function GejuPanel() {
 
       {(() => {
         // 原局段 = 非岁运特定
-        const activeHits = hits.filter((h) => !h.suiyunSpecific)
+        const activeHits = hits.filter((h) => !h.岁运?.isSuiyun)
         // 岁运有变段 = 全部岁运特定（无论是否默认成格/已激发）
-        const suiyunHits = hits.filter((h) => h.suiyunSpecific)
+        const suiyunHits = hits.filter((h) => h.岁运?.isSuiyun)
         if (hits.length === 0) {
           return <p className="text-sm text-slate-500 dark:text-slate-400">未识别到明显格局</p>
         }

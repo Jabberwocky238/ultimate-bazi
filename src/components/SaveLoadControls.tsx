@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { HOUR_UNKNOWN } from '@/lib'
 import { useBaziInput } from '@@/stores'
+import { Dialog } from '@@/Dialog'
 
 const STORAGE_KEY = 'bazi.saved.v1'
 const SEEDED_KEY = 'bazi.saved.seeded'
@@ -85,7 +86,7 @@ export function SaveLoadControls() {
   const syncToUrl = useBaziInput((s) => s.syncToUrl)
 
   const [entries, setEntries] = useState<SavedEntry[]>([])
-  const dialogRef = useRef<HTMLDialogElement>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   useEffect(() => {
     seedIfAbsent()
@@ -94,9 +95,9 @@ export function SaveLoadControls() {
 
   const openDialog = () => {
     setEntries(loadAll())
-    dialogRef.current?.showModal()
+    setDialogOpen(true)
   }
-  const closeDialog = () => dialogRef.current?.close()
+  const closeDialog = () => setDialogOpen(false)
 
   const onSave = () => {
     const raw = window.prompt('保存当前排盘，输入名称：', '')
@@ -142,11 +143,6 @@ export function SaveLoadControls() {
     setEntries(loadAll())
   }
 
-  // 点击背景关闭
-  const onDialogClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    if (e.target === dialogRef.current) closeDialog()
-  }
-
   return (
     <>
       <div className="flex items-center gap-2">
@@ -161,27 +157,12 @@ export function SaveLoadControls() {
         </button>
       </div>
 
-      <dialog
-        ref={dialogRef}
-        onClick={onDialogClick}
-        className="m-auto w-[min(24rem,calc(100vw-1.5rem))] max-h-[80vh] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-0 text-inherit shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
-      >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">已保存命例</h3>
-          <button
-            type="button"
-            onClick={closeDialog}
-            className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xl leading-none"
-            aria-label="关闭"
-          >
-            ×
-          </button>
-        </div>
-        <div className="max-h-[60vh] overflow-y-auto">
-          {entries.length === 0 ? (
-            <div className="px-4 py-6 text-sm text-slate-500 text-center">暂无保存记录</div>
-          ) : (
-            entries.map((e) => (
+      <Dialog open={dialogOpen} onClose={closeDialog} title="已保存命例">
+        {entries.length === 0 ? (
+          <div className="py-6 text-sm text-slate-500 text-center">暂无保存记录</div>
+        ) : (
+          <div className="-mx-5">
+            {entries.map((e) => (
               <div
                 key={e.name}
                 className="flex items-stretch border-b last:border-b-0 border-slate-100 dark:border-slate-800"
@@ -211,10 +192,10 @@ export function SaveLoadControls() {
                   ×
                 </button>
               </div>
-            ))
-          )}
-        </div>
-      </dialog>
+            ))}
+          </div>
+        )}
+      </Dialog>
     </>
   )
 }

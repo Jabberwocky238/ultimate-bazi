@@ -7,11 +7,20 @@
  */
 import { create } from 'zustand'
 import type { Detector, GejuHit, GejuQuality, GejuCategory, DaYunMeta } from './types'
+import { EMPTY_SUIYUN, deriveVisibility } from './types'
 import { useBazi, useShishen } from '../shishen'
 import { useStrength } from '../strength'
 import { useGejuExtras } from './hooks'
 
-export type { GejuQuality, GejuCategory, GejuHit, DaYunMeta } from './types'
+export type {
+  GejuQuality,
+  GejuCategory,
+  GejuHit,
+  GejuSuiyun,
+  GejuVisibility,
+  DaYunMeta,
+} from './types'
+export { EMPTY_SUIYUN, deriveVisibility } from './types'
 export { useGejuExtras } from './hooks'
 
 import * as zhengge from './categories/zhengge'
@@ -115,7 +124,18 @@ export function detectGeju(): GejuOutput[] {
   for (const [detect, quality, category] of Object.values(DETECTORS)) {
     const h = detect()
     if (!h) continue
-    hits.push({ ...h, quality, category })
+    // detector 可只返回 name/note(/guigeVariant), 在此补齐默认 岁运/显隐。
+    const 岁运 = h.岁运 ?? { ...EMPTY_SUIYUN }
+    const 显隐 = h.显隐 ?? deriveVisibility(岁运)
+    hits.push({
+      name: h.name,
+      note: h.note,
+      岁运,
+      显隐,
+      ...(h.guigeVariant ? { guigeVariant: h.guigeVariant } : {}),
+      quality,
+      category,
+    })
   }
   return hits
 }

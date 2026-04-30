@@ -1,5 +1,5 @@
 import { readBazi, readStrength, readExtras } from '../../hooks'
-import type { GejuHit } from '../../types'
+import { EMPTY_SUIYUN, deriveVisibility, type GejuHit } from '../../types'
 import { isCaiGuanYinQuan } from '../zongliang'
 import { isGuanShaHunZa } from '../guansha'
 import { isShangGuanJianGuan, isXiaoShenDuoShi } from '../shishang'
@@ -40,12 +40,16 @@ export function isDiWangMingZao(): GejuHit | null {
           : ' · 大运逆行'
         : ` · 大运顺行 喜用 ${meta.favorableStreak} 步 忌用 ${meta.avoidStreak} 步`
     : ''
+  const 岁运 = {
+    ...EMPTY_SUIYUN,
+    isSuiyun: true,
+    Trigger: strongFit,
+    Conquer: badFit,
+  }
   return {
     name: '帝王命造',
     note: `格局清纯 · 流通或专旺 · 日主立得住${noteTail}`,
-    suiyunSpecific: true,
-    // suiyunDefaultTrigger: true,
-    ...(strongFit ? { suiyunTrigger: true } : {}),
-    ...(badFit ? { suiyunConquer: true } : {}),
+    岁运,
+    显隐: deriveVisibility(岁运),
   }
 }

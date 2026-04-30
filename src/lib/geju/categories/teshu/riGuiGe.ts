@@ -1,5 +1,5 @@
 import { readBazi, readShishen, readExtras } from '../../hooks'
-import { CHONG_PAIR } from '../../types'
+import { CHONG_PAIR, EMPTY_SUIYUN, deriveVisibility } from '../../types'
 import type { GejuHit } from '../../types'
 
 /**
@@ -45,11 +45,16 @@ export function isRiGuiGe(): GejuHit | null {
     (!!dzChong && extraZhis.includes(dzChong)) ||
     (!!dzHai && extraZhis.includes(dzHai)) ||
     (!!heZhi && extraZhis.includes(heZhi))
+  const 岁运 = {
+    ...EMPTY_SUIYUN,
+    isSuiyun: true,
+    DefaultTrigger: true,
+    Conquer: conquer,
+  }
   return {
     name: '日贵格',
     note: `日柱 ${bazi.dayGz} · 贵人不冲${hasHe ? '·带合牢固' : ''}${conquer ? '·岁运冲害' : ''}`,
-    suiyunSpecific: true,
-    suiyunDefaultTrigger: true,
-    suiyunConquer: conquer || undefined,
+    岁运,
+    显隐: deriveVisibility(岁运),
   }
 }

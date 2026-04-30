@@ -48,8 +48,12 @@ export function isYangRenJiaSha(): GejuHit | null {
     {
       name: '羊刃驾杀',
       note: `身强 · 阳刃 ${yr} 见于支 · 七杀透根 · 无重印/食伤`,
-      suiyunSpecific: true,
     },
-    { baseFormed: true, withExtrasFormed: !extrasBreak, hasExtras: extras.active },
+    {
+      baseFormed: true,
+      withExtrasFormed: !extrasBreak,
+      hasExtras: extras.active,
+      isSuiyun: true,
+    },
   )
 }

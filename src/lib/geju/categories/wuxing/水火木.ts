@@ -1,5 +1,5 @@
 import { readBazi, readExtras } from '../../hooks'
-import type { GejuHit } from '../../types'
+import { EMPTY_SUIYUN, deriveVisibility, type GejuHit } from '../../types'
 
 /**
  * 水火木 类 — 寒木向阳 (单格, 三气联动):
@@ -41,12 +41,17 @@ export function judgeHanMu(): GejuHit | null {
   const suiyunBreak = hasExtra && natOk && !allOk
 
   const tag = suiyunTrigger ? ' · 岁运补齐' : suiyunBreak ? ' · 岁运冲散' : ''
+  const 岁运 = {
+    ...EMPTY_SUIYUN,
+    isSuiyun: true,
+    DefaultTrigger: natOk,
+    Trigger: suiyunTrigger,
+    Break: suiyunBreak,
+  }
   return {
     name: '寒木向阳',
     note: `冬木有根 · 火透调候 · 水${allShuiN}≤火${allHuoN}${tag}`,
-    suiyunSpecific: true,
-    ...(natOk ? { suiyunDefaultTrigger: true } : {}),
-    ...(suiyunTrigger ? { suiyunTrigger: true } : {}),
-    ...(suiyunBreak ? { suiyunBreak: true } : {}),
+    岁运,
+    显隐: deriveVisibility(岁运),
   }
 }
