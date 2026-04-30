@@ -42,6 +42,11 @@ function hasAll(zhis: Zhi[], triple: readonly Zhi[]): boolean {
   return triple.every((z) => zhis.includes(z))
 }
 
+/** ≥ k 字 落在 set 中。稼穑用 (md "四库全见或三见")。 */
+function hasAtLeast(zhis: Zhi[], set: readonly Zhi[], k: number): boolean {
+  return set.filter((z) => zhis.includes(z)).length >= k
+}
+
 export interface ZhuanWangResult {
   /** 主局成格 (前 5 条全部主局满足)。 */
   baseFormed: boolean
@@ -78,10 +83,13 @@ export function checkZhuanWang(
   let base2 = false
   let ext2 = false
   if (selfWx === '土') {
-    base2 = hasAll(mainZhis, SI_KU)
-    ext2 = hasAll(allZhis, SI_KU)
-    if (base2) baseLayout = '四库齐'
-    else if (ext2) extraLayout = '岁运补四库齐'
+    // md: "辰戌丑未四库全见或三见" — ≥3 即可。
+    const baseN = SI_KU.filter((z) => mainZhis.includes(z)).length
+    const allN = SI_KU.filter((z) => allZhis.includes(z)).length
+    base2 = baseN >= 3
+    ext2 = allN >= 3
+    if (base2) baseLayout = baseN === 4 ? '四库齐' : '三库见'
+    else if (ext2) extraLayout = '岁运补四库'
   } else {
     const sh = SANHE_TRIPLES[selfWx]
     const hh = SANHUI_TRIPLES[selfWx]
@@ -97,19 +105,35 @@ export function checkZhuanWang(
     }
   }
 
-  // —— 条件 3: 天干同五行 ≥ 2 (含日主，可被岁运补齐) ——
-  const baseGanN = bazi.ganWxCount(targetWx as WuXing)
-  const allGanN = baseGanN + extras.extraGanWxCount(targetWx as WuXing)
+  // —— 条件 3: 天干 比劫 + 印 ≥ 2 (含日主，可被岁运补齐) ——
+  // md 明文 "另有至少两位为同五行的比劫或生我之印星", 含印宽放。
+  const baseGanN = bazi.ganWxCount(targetWx as WuXing) + bazi.ganWxCount(yinWx)
+  const allGanN = baseGanN
+    + extras.extraGanWxCount(targetWx as WuXing) + extras.extraGanWxCount(yinWx)
   const base3 = baseGanN >= 2
   const ext3 = allGanN >= 2
 
-  // —— 条件 4: 不见官杀 (透或藏一律破; 岁运官杀视为破气) ——
-  const base4 = !shishen.hasCat('官杀')
-  const ext4 = base4 && !extras.hasCat('官杀')
+  // —— 条件 4: 无克本气 (依 md "天干无官杀透 + 地支官杀本气不成势") ——
+  // md 明文 "地支申酉本气不成势" — 仅本气 ≥ 2 才视为成势, 中气/余气藏可容。
+  const base4TouN = (shishen.tou('正官') ? 1 : 0) + (shishen.tou('七杀') ? 1 : 0)
+  const base4MainN = shishen.mainAt('正官').length + shishen.mainAt('七杀').length
+  const base4 = base4TouN === 0 && base4MainN < 2
+  const ext4TouN = base4TouN + (extras.tou('正官') ? 1 : 0) + (extras.tou('七杀') ? 1 : 0)
+  const ext4MainAdd = extras.extraArr.filter(
+    (p) => p.hideShishen[0] === '正官' || p.hideShishen[0] === '七杀',
+  ).length
+  const ext4 = ext4TouN === 0 && (base4MainN + ext4MainAdd) < 2
 
-  // —— 条件 6 (md 序号 5): 食伤透 ≥ 1 即破; 岁运透食伤同破 ——
-  const base6 = !shishen.touCat('食伤')
-  const ext6 = base6 && !extras.touCat('食伤')
+  // —— 条件 6 (md 序号 5): 微泄秀气 — 食伤 (透 + 主气) ≤ 1 ——
+  // md 明文 "食神仅一位透干或地支一位根为微泄秀气, 可喜; 食伤多透多根 → 泄过"。
+  const base6TouN = (shishen.tou('食神') ? 1 : 0) + (shishen.tou('伤官') ? 1 : 0)
+  const base6MainN = shishen.mainAt('食神').length + shishen.mainAt('伤官').length
+  const base6 = (base6TouN + base6MainN) <= 1
+  const ext6TouAdd = (extras.tou('食神') ? 1 : 0) + (extras.tou('伤官') ? 1 : 0)
+  const ext6MainAdd = extras.extraArr.filter(
+    (p) => p.hideShishen[0] === '食神' || p.hideShishen[0] === '伤官',
+  ).length
+  const ext6 = (base6TouN + ext6TouAdd + base6MainN + ext6MainAdd) <= 1
 
   // —— 条件 5: 财透 ≤ maxCaiTou (附属克气控量) ——
   const baseCaiTou = (shishen.tou('正财') ? 1 : 0) + (shishen.tou('偏财') ? 1 : 0)
@@ -152,7 +176,6 @@ export function checkZhuanWang(
       ? `, 岁运财透${extraCaiTouAdd}`
       : ''
 
-  void yinWx
   return {
     baseFormed,
     withExtrasFormed,

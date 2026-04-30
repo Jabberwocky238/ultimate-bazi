@@ -1,22 +1,36 @@
-import { readShishen, readStrength } from '../../hooks'
+import { readExtras, readShishen, readStrength } from '../../hooks'
 import type { GejuHit } from '../../types'
+import { emitGeju } from '../../_emit'
 import { monthGeFormed } from './_util'
 
 /**
- * 伤官格 — 实际判据 (与 md 5 条对照)：
- *  ① 月令本气伤官 (md 条件 1; "伤透 + 月令藏" 路径未实现)。
- *  ② 无正官透 (md 条件 3; 不区分金水伤官喜见官等例外)。
- *  ③ 无食神透 (md 条件 5; 食伤不混)。
- *  ④ 身非极弱 / 近从弱。
- *  伤官透干 + 通根 (md 条件 2): 由 monthGeFormed 月支本气近似覆盖, 未单独 check。
- *  身伤配比 (md 条件 4 决定取用): 当前未据此分支判断, 仅"非极弱"门槛。
+ * 伤官格 — 月令伤官，身有根，无官见无食混。
+ *
+ * bazi-skills 5 条:
+ *  1. 月令本气伤官 OR 月令藏 + 透干              [静态]
+ *  2. 伤官透干通根                                [由 monthGeFormed 近似]
+ *  3. 无正官 (伤官见官为祸)                       [岁运透正官 → Break, 金水伤官喜见官未实现]
+ *  4. 身伤配比决定取用                            [静态/由 strength]
+ *  5. 伤官清而不杂                                [岁运透食神 → 混杂 Break]
  */
 export function isShangGuanGe(): GejuHit | null {
   const shishen = readShishen()
   const strength = readStrength()
+  const extras = readExtras()
+
   if (!monthGeFormed('伤官')) return null
-  if (shishen.tou('正官')) return null
-  if (shishen.tou('食神')) return null
   if (strength.level === '身极弱' || strength.level === '近从弱') return null
-  return { name: '伤官格', note: '月令伤官 (本气或透根)，无官可见，不混食' }
+
+  const baseClean3 = !shishen.tou('正官')
+  const baseClean5 = !shishen.tou('食神')
+  const baseFormed = baseClean3 && baseClean5
+
+  const extClean3 = baseClean3 && !extras.tou('正官')
+  const extClean5 = baseClean5 && !extras.tou('食神')
+  const withExtrasFormed = extClean3 && extClean5
+
+  return emitGeju(
+    { name: '伤官格', note: '月令伤官 (本气或透根)，无官可见，不混食' },
+    { baseFormed, withExtrasFormed, hasExtras: extras.active },
+  )
 }
